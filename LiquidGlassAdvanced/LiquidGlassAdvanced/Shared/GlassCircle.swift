@@ -15,51 +15,25 @@ struct GlassCircle: View {
     }
 }
 
-/// Nhãn ở góc cho màn hình toàn cảnh (ẩn thanh điều hướng). Chạm để mở menu chuyển màn hình.
-struct DemoTag: View {
-    let demo: DemoID
-    @Binding var path: [DemoID]
+/// Keyword / code ngắn ở đầu màn hình không chia đôi, để nhớ nhanh API của demo.
+struct CodeHint: View {
+    let code: String
 
     var body: some View {
-        Menu {
-            if let next = demo.next {
-                Button(next.title, systemImage: "chevron.down") { path = [next] }
-            }
-            if let previous = demo.previous {
-                Button(previous.title, systemImage: "chevron.up") { path = [previous] }
-            }
-            Button("Danh sách", systemImage: "list.bullet") { path = [] }
-        } label: {
-            Text(demo.key)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(.white.opacity(0.7))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .glassEffect(.clear, in: .capsule)
-        }
-        .opacity(0.6)
-    }
-}
-
-/// Dòng hướng dẫn cố định ở đầu mỗi màn hình demo (xem `DemoID.hint`).
-struct DemoHint: View {
-    let text: String
-
-    var body: some View {
-        Label(text, systemImage: "hand.point.up.left.fill")
-            .font(.subheadline.weight(.semibold))
+        Text(code)
+            .font(.caption.monospaced())
+            .foregroundStyle(.white.opacity(0.9))
             .lineLimit(1)
-            .minimumScaleFactor(0.8)
+            .minimumScaleFactor(0.6)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(.black.opacity(0.35), in: .capsule)
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(.black.opacity(0.6), in: .capsule)
-            .padding(.horizontal)
-            .padding(.top, 4)
+            .padding(.vertical, 6)
     }
 }
 
-/// Khung tối nhẹ cho bảng điều khiển đặt trên nền nhiều màu.
-/// Chữ thường cho nhãn; tên API viết trong nhãn vẫn đọc được mà không bị xuống dòng như font mono.
+/// Bảng điều khiển ở cạnh dưới: nền tối mờ, viền mảnh, không phải glass để không chồng lên control glass bên trong.
 struct ControlPanel<Content: View>: View {
     @ViewBuilder var content: Content
 
@@ -68,7 +42,9 @@ struct ControlPanel<Content: View>: View {
             .font(.callout)
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.black.opacity(0.55), in: .rect(cornerRadius: 24))
-            .padding(.horizontal)
+            .background(.black.opacity(0.35), in: .rect(cornerRadius: 24))
+            .overlay { RoundedRectangle(cornerRadius: 24).strokeBorder(Palette.hairline) }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
     }
 }

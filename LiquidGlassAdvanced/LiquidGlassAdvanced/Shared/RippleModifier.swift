@@ -33,7 +33,6 @@ private struct RippleOnTapSelfContained: ViewModifier {
     var amplitude: Double
     @State private var origin = CGPoint.zero
     @State private var trigger = 0
-    @State private var size = CGSize.zero
 
     func body(content: Content) -> some View {
         content
@@ -43,11 +42,6 @@ private struct RippleOnTapSelfContained: ViewModifier {
                 trigger += 1
             }
             .sensoryFeedback(.impact(flexibility: .soft), trigger: trigger)
-            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
-            .autoplay(every: 1.8) {
-                origin = CGPoint(x: size.width * .random(in: 0.3...0.7), y: size.height * .random(in: 0.3...0.6))
-                trigger += 1
-            }
     }
 }
 

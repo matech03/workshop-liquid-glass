@@ -1,17 +1,24 @@
 import SwiftUI
 
-/// Nền nhiều màu, có chữ: glass cần nội dung phía sau thì mới thấy được khúc xạ.
+/// Nền phía sau demo. Glass cần chi tiết phía sau thì mới thấy được khúc xạ, nên nền nào cũng có lưới chấm.
+/// `.muted` (mặc định): tối, chỉ có hai vệt màu dịu ở góc, để mắt nhìn vào phần tử đang demo.
+/// `.vivid`: nhiều màu, cho demo cần thấy rõ nền bị biến đổi.
 struct Backdrop: View {
-    enum Style { case vivid, flat }
+    enum Style { case muted, vivid }
 
-    var style: Style = .vivid
+    var style: Style = .muted
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Group {
             switch style {
-            case .flat:
-                Color(white: 0.16)
+            case .muted:
+                ZStack {
+                    Palette.background
+                    RadialGradient(colors: [Palette.violet.opacity(0.45), .clear], center: .topLeading, startRadius: 0, endRadius: 460)
+                    RadialGradient(colors: [Palette.teal.opacity(0.30), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 420)
+                    BackdropPattern(opacity: 0.10)
+                }
             case .vivid:
                 // Nền chỉ trôi chậm: 30 fps là đủ, để GPU dành cho phần tử đang demo.
                 TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion)) { context in
@@ -44,14 +51,16 @@ struct MeshBackground: View {
     }
 
     static let colors: [Color] = [
-        Color(red: 0.10, green: 0.07, blue: 0.32), Color(red: 0.38, green: 0.14, blue: 0.64), Color(red: 0.04, green: 0.32, blue: 0.58),
-        Color(red: 0.94, green: 0.30, blue: 0.50), Color(red: 0.99, green: 0.56, blue: 0.24), Color(red: 0.18, green: 0.76, blue: 0.80),
-        Color(red: 0.05, green: 0.12, blue: 0.36), Color(red: 0.56, green: 0.20, blue: 0.76), Color(red: 0.96, green: 0.80, blue: 0.34),
+        Palette.navy, Palette.violet, Palette.slate,
+        Palette.rose, Palette.peach, Palette.teal,
+        Palette.navy, Palette.violet, Palette.sand,
     ]
 }
 
 /// Lưới chấm mờ: đủ chi tiết để thấy glass khúc xạ, không tranh sự chú ý với phần tử đang demo.
 private struct BackdropPattern: View {
+    var opacity = 0.22
+
     var body: some View {
         Canvas { context, size in
             let step: CGFloat = 28
@@ -61,7 +70,7 @@ private struct BackdropPattern: View {
                     dots.addEllipse(in: CGRect(x: x - 1.5, y: y - 1.5, width: 3, height: 3))
                 }
             }
-            context.fill(dots, with: .color(.white.opacity(0.28)))
+            context.fill(dots, with: .color(.white.opacity(opacity)))
         }
         .allowsHitTesting(false)
     }

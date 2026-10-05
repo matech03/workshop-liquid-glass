@@ -60,7 +60,7 @@ function rail(slide, sec, demo, accent) {
   slide.addText('Liquid Glass · Level by Level', { x: M, y: 0.32, w: 4, h: 0.3, fontFace: F.mono, fontSize: 10, color: C.mute, margin: 0 });
   const items = SECTIONS.map((s, i) => ({ text: (i ? '   ' : '') + s, options: { color: s === sec ? accent : C.dim, fontFace: s === sec ? F.bodySemi : F.body } }));
   slide.addText(items, { x: 4.4, y: 0.32, w: 7.0, h: 0.3, fontSize: 10, align: 'right', margin: 0 });
-  // Khoá màn hình demo trong app (`-demo KEY`)
+  // Khoá màn hình demo trong danh sách của app
   if (demo) {
     slide.addShape('roundRect', { x: 11.6, y: 0.27, w: 1.11, h: 0.36, rectRadius: 0.08, fill: { color: accent }, line: { type: 'none' } });
     slide.addText(`DEMO ${demo}`, { x: 11.6, y: 0.27, w: 1.11, h: 0.36, fontFace: F.mono, fontSize: 10, color: 'FFFFFF', align: 'center', valign: 'middle', margin: 0 });
@@ -100,6 +100,7 @@ function content(slide, s, accent) {
   blocks.push(['title', titleH]);
   const sumPt = 16, sumH = lines(s.sum, w - 0.3, sumPt) * lh(sumPt) + 0.2;
   blocks.push(['sum', sumH]);
+  if (s.goodbad) blocks.push(['goodbad', s.goodbad.length * 0.5 - 0.08]);
   if (s.formula) blocks.push(['formula', 0.5]);
   if (s.table) blocks.push(['table', 0.38 * (s.table.rows.length + 1)]);
   if (s.steps) blocks.push(['steps', s.steps.reduce((t, l) => t + Math.max(0.4, lines(l, w - 0.6, 15) * lh(15) + 0.1), 0)]);
@@ -118,6 +119,15 @@ function content(slide, s, accent) {
     if (kind === 'sum') {
       slide.addShape('rect', { x, y, w: 0.06, h, fill: { color: accent }, line: { type: 'none' } });
       slide.addText(runs(s.sum, { fontFace: F.bodyMed, fontSize: sumPt, color: C.ink2 }), { x: x + 0.24, y, w: w - 0.24, h, margin: 0, valign: 'middle', lineSpacingMultiple: 1.2 });
+    }
+    if (kind === 'goodbad') {
+      s.goodbad.forEach(([verdict, code], i) => {
+        const yy = y + i * 0.5, good = verdict === 'good';
+        const tone = good ? { fg: '1F8A3B', bg: 'E6F6EA' } : { fg: 'C2362F', bg: 'FCE8E7' };
+        slide.addShape('roundRect', { x, y: yy, w, h: 0.42, rectRadius: 0.08, fill: { color: tone.bg }, line: { type: 'none' } });
+        slide.addText(good ? 'GOOD' : 'BAD', { x: x + 0.14, y: yy, w: 0.8, h: 0.42, fontFace: F.mono, bold: true, fontSize: 11, color: tone.fg, valign: 'middle', margin: 0 });
+        slide.addText(runs(code, { fontFace: F.mono, fontSize: 13, color: C.ink, codeBg: tone.bg }), { x: x + 0.95, y: yy, w: w - 1.05, h: 0.42, valign: 'middle', margin: 0, fit: 'shrink' });
+      });
     }
     if (kind === 'formula') {
       slide.addShape('roundRect', { x, y, w, h, rectRadius: 0.1, fill: { color: C.paper }, line: { color: C.line, width: 1 } });
@@ -200,6 +210,13 @@ function levelIntro(slide, s) {
   cards(slide, s.cards, a);
 }
 
+// Trang chuyển phần: chỉ một tiêu đề lớn ở giữa
+function section(slide, s) {
+  slide.background = { color: C.paper };
+  slide.addShape('rect', { x: 6.17, y: 2.95, w: 1.0, h: 0.08, fill: { color: ACCENT[0] }, line: { type: 'none' } });
+  slide.addText(s.title, { x: 1, y: 3.25, w: 11.33, h: 1.4, fontFace: F.display, bold: true, fontSize: 72, color: C.ink, align: 'center', margin: 0 });
+}
+
 function end(slide, s) {
   slide.background = { color: C.bg };
   slide.addShape('rect', { x: 6.17, y: 2.6, w: 1.0, h: 0.08, fill: { color: ACCENT[0] }, line: { type: 'none' } });
@@ -235,13 +252,14 @@ async function splitNotes(buffer) {
 const pptx = new PptxGenJS();
 pptx.layout = 'LAYOUT_WIDE';
 pptx.title = TITLE;
-pptx.subject = '4 level Liquid Glass, tích hợp, performance, lưu ý';
+pptx.subject = 'Giới thiệu, 4 level, cấu hình hệ thống, ví dụ, nguyên tắc Liquid Glass';
 
 for (const s of SLIDES) {
   const slide = pptx.addSlide();
   const accent = ACCENT[s.level ?? 0];
   if (s.kind === 'cover') cover(slide, s);
   else if (s.kind === 'end') end(slide, s);
+  else if (s.kind === 'section') { section(slide, s); rail(slide, s.sec, null, ACCENT[0]); }
   else {
     slide.background = { color: s.kind === 'level' ? C.paper : C.bg };
     if (s.kind === 'level') levelIntro(slide, s);

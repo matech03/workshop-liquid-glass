@@ -1,145 +1,88 @@
 import SwiftUI
 
-// App đi theo bài: 4 level → tích hợp → performance → lưu ý. Mỗi level tối đa 2 màn hình:
-// "a" là cách làm, "b" là lỗi hay gặp. Màn hình gộp nhiều demo dùng tab (DemoTabs).
+// App đi theo bài: giới thiệu → 4 level → cấu hình hệ thống → ví dụ. Phần nguyên tắc chỉ có trên slide.
+// Mỗi demo so sánh chia đôi màn hình (GoodBad / Compare). Màn hình nhiều demo dùng tab (DemoTabs).
+// Màn hình ít chữ: hướng dẫn thao tác và dòng code nằm trên slide, không nằm trong app.
 
 enum Part: String, CaseIterable, Identifiable {
+    case intro = "Giới thiệu"
     case level1 = "Level 1 · Phản hồi chạm"
     case level2 = "Level 2 · Chuyển trạng thái"
     case level3 = "Level 3 · Chuyển động vật lý"
     case level4 = "Level 4 · Biến dạng tại điểm chạm"
-    case integration = "Tích hợp"
-    case performance = "Performance"
-    case notes = "Lưu ý"
+    case config = "Cấu hình hệ thống"
+    case examples = "Ví dụ"
 
     var id: Self { self }
     var demos: [DemoID] { DemoID.allCases.filter { $0.part == self } }
 
-    var tint: Color {
-        switch self {
-        case .level1: .blue
-        case .level2: .teal
-        case .level3: .orange
-        case .level4: .pink
-        case .integration: .indigo
-        case .performance: .red
-        case .notes: .gray
-        }
-    }
 }
 
 enum DemoID: String, CaseIterable, Identifiable, Hashable {
-    case l1, l2a, l2b, l3a, l3b, l4a, l4b
-    case finale, checkpoint1, checkpoint2, checkpoint3
-    case performance, notes
+    case intro, l1, l2a, l2b, l3, l4
+    case settings
+    case photo, arc, match, lens
 
     var id: Self { self }
 
-    /// Khoá cho launch argument `-demo`, ví dụ `-demo 2a`, `-demo cp2`.
+    /// Khoá hiện ở danh sách, trùng nhãn DEMO trên slide.
     var key: String {
         switch self {
+        case .intro: "0"
         case .l1: "1"
         case .l2a: "2a"
         case .l2b: "2b"
-        case .l3a: "3a"
-        case .l3b: "3b"
-        case .l4a: "4a"
-        case .l4b: "4b"
-        case .finale: "all"
-        case .checkpoint1: "cp1"
-        case .checkpoint2: "cp2"
-        case .checkpoint3: "cp3"
-        case .performance: "perf"
-        case .notes: "notes"
+        case .l3: "3"
+        case .l4: "4"
+        case .settings: "cfg"
+        case .photo: "photo"
+        case .arc: "arc"
+        case .match: "match"
+        case .lens: "lens"
         }
     }
 
     var part: Part {
         switch self {
+        case .intro: .intro
         case .l1: .level1
         case .l2a, .l2b: .level2
-        case .l3a, .l3b: .level3
-        case .l4a, .l4b: .level4
-        case .finale, .checkpoint1, .checkpoint2, .checkpoint3: .integration
-        case .performance: .performance
-        case .notes: .notes
+        case .l3: .level3
+        case .l4: .level4
+        case .settings: .config
+        case .photo, .arc, .match, .lens: .examples
         }
     }
 
     var title: String {
         switch self {
-        case .l1: "Highlight + haptic"
-        case .l2a: "Morph: hòa nhau, thêm/bớt, đổi shape"
-        case .l2b: "Lỗi: morph hỏng, không nội suy"
-        case .l3a: "Spring khi bị ngắt, decay khi thả"
-        case .l3b: "Menu cung tròn"
-        case .l4a: "Shader modifier, ripple"
-        case .l4b: "Méo nền dưới lớp glass"
-        case .finale: "Đủ 4 level · 53 dòng"
-        case .checkpoint1: "Checkpoint 1 · nền"
-        case .checkpoint2: "Checkpoint 2 · + kéo thả"
-        case .checkpoint3: "Checkpoint 3 · + morph"
-        case .performance: "Đo GPU: 5 / 20 / 50 phần tử"
-        case .notes: "Glass vs blur, trợ năng, quy tắc ship"
-        }
-    }
-
-    /// Một dòng hướng dẫn ở đầu màn hình. Màn hình toàn cảnh không có.
-    var hint: String? {
-        switch self {
-        case .l1: "Chạm 2 nút. Tắt “Đổi trigger”: mất haptic"
-        case .l2a: "Đổi tab, chạm hoặc kéo để morph"
-        case .l2b: "Bật 1 lỗi → chạm → so với bản đúng"
-        case .l3a: "Bấm liên tục / kéo rồi thả"
-        case .l3b: "Chạm +: so Layout với Keyframe"
-        case .l4a: "Kéo slider / chạm nền"
-        case .l4b: "Kéo vùng méo, đổi dưới/trên"
-        case .performance: "Chọn 5 / 20 / 50, mở Instruments"
-        case .notes: "Đổi tab: 3 lưu ý trước khi ship"
-        default: nil
-        }
-    }
-
-    var file: String {
-        switch self {
-        case .l1: "TouchFeedbackDemo.swift"
-        case .l2a, .l2b: "Level2.swift"
-        case .l3a: "Level3.swift"
-        case .l3b: "ArcMenu.swift"
-        case .l4a: "Level4.swift"
-        case .l4b: "DistortionUnderGlassDemo.swift"
-        case .finale: "Finale.swift"
-        case .checkpoint1: "Checkpoint1.swift"
-        case .checkpoint2: "Checkpoint2.swift"
-        case .checkpoint3: "Checkpoint3.swift"
-        case .performance: "GlassStressDemo.swift"
-        case .notes: "Notes.swift"
+        case .intro: "Glass và blur"
+        case .l1: "Phản hồi chạm"
+        case .l2a: "Morph"
+        case .l2b: "Lỗi morph"
+        case .l3: "Spring và decay"
+        case .l4: "Shader"
+        case .settings: "Cài đặt người dùng"
+        case .photo: "Nút trên ảnh"
+        case .arc: "Menu cung tròn"
+        case .match: "Chuyển cảnh"
+        case .lens: "Biến dạng"
         }
     }
 
     @ViewBuilder var screen: some View {
         switch self {
+        case .intro: GlassVsBlurDemo()
         case .l1: TouchFeedbackDemo()
         case .l2a: Level2_Morph()
         case .l2b: Level2_Pitfalls()
-        case .l3a: Level3_Motion()
-        case .l3b: ArcMenuDemo()
-        case .l4a: Level4_Shaders()
-        case .l4b: DistortionUnderGlassDemo()
-        case .finale: Finale()
-        case .checkpoint1: Checkpoint1()
-        case .checkpoint2: Checkpoint2()
-        case .checkpoint3: Checkpoint3()
-        case .performance: GlassStressDemo()
-        case .notes: NotesDemo()
-        }
-    }
-
-    /// Màn hình toàn cảnh: ẩn thanh điều hướng, chỉ còn nhãn mờ ở góc.
-    var immersive: Bool {
-        switch self {
-        case .finale, .checkpoint1, .checkpoint2, .checkpoint3: true
-        default: false
+        case .l3: Level3_Motion()
+        case .l4: Level4_Shaders()
+        case .settings: SystemSettingsDemo()
+        case .photo: PhotoControlsDemo()
+        case .arc: ArcMenuDemo()
+        case .match: MatchedTransitionDemo()
+        case .lens: DistortionUnderGlassDemo()
         }
     }
 
@@ -151,16 +94,10 @@ enum DemoID: String, CaseIterable, Identifiable, Hashable {
         let i = all.firstIndex(of: self)! + step
         return all.indices.contains(i) ? all[i] : nil
     }
-
-    /// Màn hình mở sẵn khi chạy với `-demo KEY`.
-    static var launchPath: [DemoID] {
-        guard let key = Launch.demo else { return [] }
-        return allCases.first { $0.key == key }.map { [$0] } ?? []
-    }
 }
 
 struct RootView: View {
-    @State private var path = DemoID.launchPath
+    @State private var path: [DemoID] = []
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -173,7 +110,9 @@ struct RootView: View {
                     }
                 }
             }
-            .navigationTitle("Liquid Glass Advanced")
+            .scrollContentBackground(.hidden)
+            .background(Palette.background)
+            .navigationTitle("Liquid Glass")
             .navigationDestination(for: DemoID.self) { demo in
                 DemoContainer(demo: demo, path: $path)
             }
@@ -188,57 +127,33 @@ private struct DemoRow: View {
     var body: some View {
         HStack(spacing: 14) {
             Text(demo.key)
-                .font(.system(.footnote, design: .rounded).weight(.bold))
-                .frame(width: 46, height: 46)
-                .glassEffect(.regular.tint(demo.part.tint.opacity(0.45)), in: .circle)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(demo.title)
-                    .font(.body.weight(.medium))
-                Text(demo.file)
-                    .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
-            }
+                .font(.system(.footnote, design: .rounded).weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 38, alignment: .leading)
+            Text(demo.title)
         }
-        .padding(.vertical, 2)
     }
 }
 
-/// Khung chung: tên phần ở tiêu đề, tên màn hình ở subtitle, nút lên/xuống để chuyển nhanh.
+/// Khung chung: tên màn ở tiêu đề, nút lên/xuống để chuyển nhanh.
+/// Thanh điều hướng và các nút ở đây là glass của hệ thống: không có dòng glassEffect nào.
 private struct DemoContainer: View {
     let demo: DemoID
     @Binding var path: [DemoID]
 
     var body: some View {
-        Group {
-            if demo.immersive {
-                demo.screen
-                    .toolbar(.hidden, for: .navigationBar)
-                    .overlay(alignment: .topTrailing) {
-                        DemoTag(demo: demo, path: $path).padding(.trailing)
-                    }
-            } else {
-                demo.screen
-                    .safeAreaInset(edge: .top) {
-                        if let hint = demo.hint { DemoHint(text: hint) }
-                    }
-                    .navigationTitle(demo.part.rawValue)
-                    .navigationSubtitle(demo.title)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .topBarTrailing) {
-                            Button("Màn trước", systemImage: "chevron.up") { go(demo.previous) }
-                                .disabled(demo.previous == nil)
-                            Button("Màn sau", systemImage: "chevron.down") { go(demo.next) }
-                                .disabled(demo.next == nil)
-                        }
-                    }
+        demo.screen
+            .navigationTitle(demo.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button("Màn trước", systemImage: "chevron.up") { go(demo.previous) }
+                        .disabled(demo.previous == nil)
+                    Button("Màn sau", systemImage: "chevron.down") { go(demo.next) }
+                        .disabled(demo.next == nil)
+                }
             }
-        }
-        .overlay(alignment: .bottomLeading) {
-            if Launch.showsMeter {
-                FrameTimeOverlay().padding()
-            }
-        }
     }
 
     private func go(_ target: DemoID?) {

@@ -1,22 +1,32 @@
 // Nội dung deck: nguồn duy nhất cho file pptx (tools/build-pptx.mjs).
 // Cú pháp: `code` cho tên API, **đậm** để nhấn mạnh. Viết ngắn: mỗi dòng một ý.
-// Slide nội dung: bên trái kicker, title, sum, rồi formula / steps / bullets / trap / quote; bên phải 3 card.
-// `demo` là khoá màn hình trong app LiquidGlassAdvanced (`-demo KEY`), hiện ở góc phải trên.
+// Slide nội dung: bên trái kicker, title, sum, rồi goodbad / formula / steps / bullets / trap / quote; bên phải 3 card.
+// goodbad: [['good' | 'bad', 'code'], ...] khớp nửa trên / nửa dưới của màn hình demo.
+// `demo` là khoá màn hình trong danh sách của app LiquidGlassAdvanced, hiện ở góc phải trên.
 
 export const TITLE = 'Trải nghiệm người dùng xuất sắc với Liquid Glass';
-export const SECTIONS = ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Tích hợp', 'Performance', 'Lưu ý'];
+export const SECTIONS = ['Giới thiệu', 'Level 1', 'Level 2', 'Level 3', 'Level 4', 'Cấu hình', 'Ví dụ', 'Nguyên tắc'];
 
 export const SLIDES = [
   { id: 'bia', kind: 'cover',
     eyebrow: 'iOS 26+ · SwiftUI · Metal',
-    lead: '4 level từ phản hồi chạm đến Metal shader.',
+    lead: 'Từ component hệ thống đến Metal shader.',
     meta: ['45 phút', 'Dev iOS', 'Demo: LiquidGlassAdvanced'] },
 
-  { id: 'lo-trinh', kicker: 'Lộ trình',
-    title: '4 level, rồi ghép lại',
-    sum: 'Mỗi level thêm **một lớp phản hồi**.',
-    steps: ['**Level 1** · Phản hồi chạm', '**Level 2** · Chuyển trạng thái', '**Level 3** · Chuyển động vật lý', '**Level 4** · Biến dạng tại điểm chạm'],
-    cards: [['Tích hợp', 'Đủ 4 level trong 53 dòng.'], ['Performance', 'Đo GPU trên máy thật.'], ['Lưu ý', 'Glass vs blur, trợ năng, quy tắc ship.']] },
+  // ---------- Giới thiệu ----------
+  { id: 'intro', sec: 'Giới thiệu', demo: '0', kicker: 'Giới thiệu',
+    title: 'Liquid Glass không phải blur',
+    sum: 'Glass **khúc xạ** nền và **đổi theo nền**. Blur chỉ làm mờ.',
+    goodbad: [['good', '.glassEffect(.regular)'], ['bad', '.background(.ultraThinMaterial)']],
+    trap: 'Glass không lấy mẫu glass: không chồng lớp lên nhau.',
+    cards: [['.regular', 'Mặc định, tự thích ứng.'], ['.clear', 'Trong hơn, cần nền tối.'], ['.identity', 'Tắt glass có điều kiện.']] },
+
+  { id: 'he-thong', sec: 'Giới thiệu', kicker: 'Giới thiệu · Component hệ thống',
+    title: 'Component hệ thống có sẵn glass',
+    sum: 'Build bằng SDK 26 là thanh điều hướng, tab bar, sheet **tự có glass**.',
+    steps: ['**Tự có**: `TabView`, toolbar, `.sheet`, `Menu`, `.searchable`', '**Tuỳ biến** toolbar: `ToolbarSpacer`, `sharedBackgroundVisibility`', '**Tuỳ biến** tab bar: `tabBarMinimizeBehavior`, `tabViewBottomAccessory`', '**Tự vẽ**: `glassEffect`, `GlassEffectContainer`, `.buttonStyle(.glass)`'],
+    trap: 'Không thêm `glassEffect` lên toolbar, tab bar: thành glass chồng glass.',
+    cards: [['Tự có', 'Build bằng SDK 26 là có, không cần code.'], ['Tuỳ biến', 'Gom, tách, thu nhỏ. Nền tràn dưới sidebar: `backgroundExtensionEffect`.'], ['Tự vẽ', 'Chỉ cho control riêng của app. UIKit: `UIGlassEffect`.']] },
 
   // ---------- Level 1 ----------
   { id: 'l1', level: 1, kind: 'level', sec: 'Level 1',
@@ -28,8 +38,7 @@ export const SLIDES = [
   { id: 'l1-demo', level: 1, sec: 'Level 1', demo: '1', kicker: 'Level 1 · Cách làm',
     title: 'Highlight + haptic',
     sum: '**Thị giác**: sáng, co giãn. **Xúc giác**: rung khi state đổi.',
-    bullets: ['Haptic theo nghĩa: `.selection`, `.impact`, `.success`'],
-    trap: '`trigger` không đổi giá trị thì không rung.',
+    goodbad: [['good', '`.glassEffect(.regular.interactive())`'], ['bad', '`.glassEffect(.regular)`'], ['good', 'trigger: `count += 1`'], ['bad', 'trigger: `liked = true` lặp lại']],
     cards: [['.glassEffect(.regular.interactive())', 'View tự vẽ.'], ['.buttonStyle(.glass)', 'Không cần thêm gì.'], ['sensoryFeedback(_:trigger:)', 'Phát khi `trigger` đổi.']] },
 
   // ---------- Level 2 ----------
@@ -42,130 +51,139 @@ export const SLIDES = [
   { id: 'l2-demo', level: 2, sec: 'Level 2', demo: '2a', kicker: 'Level 2 · Cách làm',
     title: 'Ba kiểu morph',
     sum: 'Thêm/bớt cần **container + ID + animation**.',
-    steps: ['**Hòa nhau**: gap < `spacing`', '**Thêm / bớt**: `glassEffectID` cùng `@Namespace`', '**Đổi shape**: giữ identity, đổi `frame`'],
+    goodbad: [['good', 'Hòa nhau: chung `GlassEffectContainer`'], ['good', 'Thêm / bớt: `glassEffectID` + `withAnimation`'], ['good', 'Đổi shape: một view, đổi `frame`'], ['bad', '`if/else` hai view: chỉ fade']],
     cards: [['spacing', 'Khoảng cách bắt đầu hòa.'], ['glassEffectID(_:in:)', 'Chỉ cần khi thêm/bớt view.'], ['frame + cornerRadius', 'SwiftUI tự nội suy.']] },
 
   { id: 'l2-pitfall', level: 2, sec: 'Level 2', demo: '2b', kicker: 'Level 2 · Lỗi hay gặp',
-    title: 'Morph hỏng, view không nội suy',
+    title: 'Hai lỗi hay gặp nhất',
     sum: 'Thiếu một điều kiện là **view nhảy thẳng**.',
-    steps: ['Khác container', 'Thiếu `withAnimation`', 'ID đổi theo state', '`if/else` đổi identity'],
+    goodbad: [['good', 'một container cho cả nhóm'], ['bad', 'mỗi nút tự bọc container'], ['good', '`var animatableData { progress }`'], ['bad', 'Shape thiếu `animatableData`']],
     trap: '`glassEffect` trước `.frame`: sai kích thước, không phải lỗi morph.',
-    cards: [['Cùng container', 'Morph trong một container.'], ['ID ổn định', 'Không đổi theo state.'], ['.transaction { print($0) }', 'Xem animation thực tế.']] },
+    cards: [['Cùng container', 'Morph trong một container.'], ['@Animatable', 'Khai báo giá trị cần nội suy.'], ['ID ổn định', 'Không đổi theo state.']] },
 
   // ---------- Level 3 ----------
   { id: 'l3', level: 3, kind: 'level', sec: 'Level 3',
     title: 'Chuyển động vật lý',
     sum: 'Chuyển động **theo tay**, ngắt vẫn mượt.',
-    steps: ['Spring khi bị ngắt', 'Decay khi thả tay', 'Animate theo cung'],
-    cards: [['spring', 'Giữ vận tốc.'], ['CustomAnimation', 'Tự viết decay.'], ['Animatable Layout', 'Vị trí theo frame.']] },
+    steps: ['Spring khi bị ngắt', 'Decay khi thả tay'],
+    cards: [['spring', 'Giữ vận tốc khi bị ngắt.'], ['CustomAnimation', 'Tự viết decay.'], ['Value.velocity', 'Vận tốc lúc thả tay.']] },
 
-  { id: 'l3-demo', level: 3, sec: 'Level 3', demo: '3a', kicker: 'Level 3 · Cách làm',
+  { id: 'l3-demo', level: 3, sec: 'Level 3', demo: '3', kicker: 'Level 3 · Cách làm',
     title: 'Spring khi ngắt, decay khi thả',
     sum: '**Spring** giữ vận tốc. **Decay** trượt theo tay.',
+    goodbad: [['good', '`.spring(duration: 0.8, bounce: 0)`'], ['bad', '`.easeInOut(duration: 0.8)`'], ['good', 'thả tay: `Decay(k: 2)`'], ['bad', 'thả tay: dừng tại chỗ']],
     formula: 'đích = p₀ + v₀ / k · k ≈ 2 /s',
-    bullets: ['Có đích: spring. Không đích: decay'],
     cards: [['shouldMerge', 'Spring đổi đích liền mạch.'], ['DragGesture.Value.velocity', 'Vận tốc lúc thả.'], ['CustomAnimation', '`animate`, `velocity`.']] },
-
-  { id: 'l3-arc', level: 3, sec: 'Level 3', demo: '3b', kicker: 'Level 3 · Nâng cao',
-    title: 'Menu cung tròn bằng Layout',
-    sum: '`offset` đi **đường thẳng**. `Layout` đi **theo cung**.',
-    bullets: ['Spring chạy trên `progress`'],
-    cards: [['animatableData', 'Đưa `progress` vào đây.'], ['placeSubviews', 'Tính vị trí mỗi frame.'], ['KeyframeAnimator', 'Timeline cố định, không vận tốc.']] },
 
   // ---------- Level 4 ----------
   { id: 'l4', level: 4, kind: 'level', sec: 'Level 4',
     title: 'Biến dạng tại điểm chạm',
     sum: 'Nền **gợn sóng theo ngón tay** bằng Metal.',
-    steps: ['3 shader modifier', 'Ripple tại điểm chạm', 'Méo nền dưới lớp glass'],
+    steps: ['3 shader modifier', 'Ripple tại điểm chạm', 'Tắt shader khi không chạy'],
     cards: [['layerEffect', 'Đọc nhiều pixel.'], ['distortionEffect', 'Trả về vị trí nguồn.'], ['keyframeAnimator', 'Đưa thời gian vào shader.']] },
 
-  { id: 'l4-demo', level: 4, sec: 'Level 4', demo: '4a', kicker: 'Level 4 · Cách làm',
+  { id: 'l4-demo', level: 4, sec: 'Level 4', demo: '4', kicker: 'Level 4 · Cách làm',
     title: 'Shader modifier và ripple',
-    sum: 'Shader là **hàm thuần**. Animation nằm ở Swift.',
-    bullets: ['Input ripple: `origin`, `time`, amplitude', '`time` chạy 0 → 1,5 s'],
+    sum: 'So với ảnh gốc: **đổi màu**, **dời pixel**, **trộn pixel**.',
+    goodbad: [['good', 'ripple: `isEnabled: t > 0 && t < 1.5`'], ['bad', 'ripple: `layerEffect` luôn bật']],
     trap: 'Không áp `layerEffect` lên `List`/`ScrollView`.',
-    cards: [['colorEffect', 'Trả về màu mới.'], ['distortionEffect', 'Trả về vị trí nguồn.'], ['layerEffect', 'Gọi `layer.sample()`.']] },
+    cards: [['colorEffect', 'Đổi màu, hình giữ nguyên.'], ['distortionEffect', 'Dời pixel, màu giữ nguyên.'], ['layerEffect', 'Trộn nhiều pixel.']] },
 
-  { id: 'l4-under', level: 4, sec: 'Level 4', demo: '4b', kicker: 'Level 4 · Lỗi hay gặp',
-    title: 'Méo nền dưới lớp glass',
-    sum: 'Đặt shader **dưới**: giữ highlight hệ thống.',
-    bullets: ['Tâm méo đưa vào `animatableData`'],
-    trap: 'Shader bọc cả nhóm glass: hiệu ứng biến mất.',
-    cards: [['Dưới lớp glass', 'Viền, highlight vẫn đúng.'], ['animatableData', 'Tâm méo theo spring.'], ['TimelineView', '`time` liên tục.']] },
+  // ---------- Cấu hình hệ thống ----------
+  { id: 'cfg-user', sec: 'Cấu hình', demo: 'cfg', kicker: 'Cấu hình · Người dùng',
+    title: 'Glass theo cài đặt người dùng',
+    sum: 'Glass hệ thống **tự thích ứng**. Code tự viết phải **tự đọc** `@Environment`.',
+    steps: ['**Giảm độ trong suốt**: glass đục hơn', '**Tăng độ tương phản**: viền rõ hơn', '**Giảm chuyển động**: bỏ nảy, tắt ripple', '**Sáng / Tối**: glass đổi theo giao diện', '**Trong / Nhuộm màu** (iOS 26.1+): không có API'],
+    trap: 'Hệ thống chỉ lo glass của hệ thống. Shader, spring tự viết phải tự đọc cài đặt.',
+    cards: [['accessibilityReduceTransparency', '`.regular` thành nền đặc.'], ['colorSchemeContrast', 'Tăng viền.'], ['accessibilityReduceMotion', 'Tắt ripple, bỏ nảy.']] },
 
-  // ---------- Tích hợp · Performance · Lưu ý ----------
-  { id: 'integration', sec: 'Tích hợp', demo: 'all', kicker: 'Tích hợp',
-    title: 'Đủ 4 level trong 53 dòng',
-    sum: 'Mỗi level chỉ thêm **vài modifier**.',
-    steps: ['Nền `MeshGradient`: 16 dòng', '+ kéo thả, spring: 28 dòng', '+ morph: 42 dòng', '+ highlight, haptic, ripple: **53 dòng**'],
-    cards: [['Level 1 + 2', '`.interactive()`, `glassEffectID`.'], ['Level 3', '`DragGesture` + spring.'], ['Level 4', '`layerEffect` ripple.']] },
+  { id: 'cfg-app', sec: 'Cấu hình', kicker: 'Cấu hình · App',
+    title: 'Cấu hình của app',
+    sum: 'App quyết định **có glass hay không** và **chạy ở bao nhiêu Hz**.',
+    bullets: ['`UIDesignRequiresCompatibility = YES` (Info.plist): giữ giao diện cũ khi build bằng SDK 26', 'Target dưới iOS 26: gói `#available` trong một `ViewModifier`, fallback `Material`', '`CADisableMinimumFrameDurationOnPhone`: cho phép 120 Hz trên ProMotion'],
+    trap: 'Key compatibility chỉ là tạm thời. SDK 27.1 vẫn chạy: kiểm tra lại với mỗi SDK mới.',
+    cards: [['UIDesignRequiresCompatibility', 'Tạm hoãn Liquid Glass.'], ['#available(iOS 26, *)', 'Một modifier, không rải khắp nơi.'], ['CADisableMinimumFrameDurationOnPhone', '120 Hz cho animation tự viết.']] },
 
-  { id: 'performance', sec: 'Performance', demo: 'perf', kicker: 'Performance',
+  // ---------- Ví dụ ----------
+  { id: 'vi-du', kind: 'section', sec: 'Ví dụ', title: 'Ví dụ' },
+
+  // ---------- Nguyên tắc ----------
+  { id: 'nguyen-tac', sec: 'Nguyên tắc', kicker: 'Nguyên tắc',
+    title: 'Nguyên tắc cốt lõi',
+    sum: 'Sáu điều kiểm tra **trước khi ship**.',
+    steps: ['Glass cho lớp điều khiển nổi. **Không glass trên glass.**', 'Chạm là phản hồi: `.interactive()` + haptic theo state.', 'Cùng nhóm thì chung container. Đổi state: `withAnimation`.', 'Chuyển động theo tay: spring giữ vận tốc.', 'Shader đặt dưới glass, tắt khi không chạy.', 'Code tự viết tự đọc cài đặt. **Đo GPU trên máy thật.**'],
+    quote: 'Mỗi phần tử Liquid Glass phải trả lời được: chạm vào thì phản hồi gì?',
+    cards: [['Dùng đúng chỗ', 'Glass nổi trên nội dung, không thay nội dung.'], ['Phản hồi cộng dồn', 'Mỗi level thêm một lớp, không bỏ lớp trước.'], ['Đo, không đoán', 'Instruments trên iPhone thật.']] },
+
+  { id: 'performance', sec: 'Nguyên tắc', kicker: 'Nguyên tắc · Đo, không đoán',
     title: 'Đo GPU trên máy thật',
-    sum: 'Glass vẽ trên GPU: **dùng Instruments**.',
-    table: { head: ['Số phần tử', 'Riêng lẻ', 'Container', '+ layerEffect'], rows: [['5', '… ms', '… ms', '… ms'], ['20', '… ms', '… ms', '… ms'], ['50', '… ms', '… ms', '… ms']] },
-    bullets: ['Ngân sách: 16,7 ms (60 Hz) · 8,3 ms (120 Hz)'],
+    sum: 'Glass vẽ trên GPU: **dùng Instruments**, không đoán.',
+    bullets: ['Ngân sách: 16,7 ms (60 Hz) · 8,3 ms (120 Hz)', 'Nhiều phần tử glass: gom chung `GlassEffectContainer`', 'Shader: `isEnabled: false` khi không chạy, compile trước lúc khởi động', 'Đo trên iPhone thật, ghi rõ model: simulator không phản ánh GPU'],
     cards: [['Metal System Trace', 'GPU mỗi frame.'], ['Shader.compile(as:)', 'Tránh khựng lần đầu.'], ['isEnabled: false', 'Tắt shader khi không cần.']] },
-
-  { id: 'notes', sec: 'Lưu ý', demo: 'notes', kicker: 'Lưu ý',
-    title: '3 lưu ý trước khi ship',
-    sum: 'Mỗi phần tử phải trả lời: **chạm vào thì phản hồi gì?**',
-    trap: 'Glass không lấy mẫu glass: không chồng lớp lên nhau.',
-    cards: [['Glass ≠ blur', 'Khúc xạ, highlight, đổi theo nền.'], ['Trợ năng', 'Shader tự viết phải tự tắt.'], ['Quy tắc ship', 'Container + ID + animation. Đo GPU.']] },
 
   { id: 'het', kind: 'end',
     title: 'Hỏi & đáp',
-    lead: 'Demo **LiquidGlassAdvanced** · mở thẳng bằng `-demo KEY`' },
+    lead: 'Demo **LiquidGlassAdvanced**' },
 ];
 
 // Speaker notes: NÓI = nội dung trình bày, LÀM = thao tác demo, BẪY = lỗi hay gặp, XCODE = file mở trên màn hình.
 export const NOTES = {
   bia: { do: ['Cắm iPhone, bật mirroring và Focus.', 'Mở LiquidGlassAdvanced, Xcode chia đôi màn hình.'] },
-  'lo-trinh': { time: '0:00', say: ['Bài đi lần lượt 4 level, mỗi level thêm một lớp phản hồi.', 'Mỗi slide có khoá demo ở góc phải: mở app bằng `-demo KEY`.'] },
+  intro: { time: '0:00–3:00', mode: 'Demo 0',
+    say: ['Liquid Glass khúc xạ nội dung bên dưới, có highlight và tự đổi độ sáng theo nền.', 'Material (blur + tint) chỉ làm mờ và phủ màu.', 'Glass không lấy mẫu glass khác: không chồng lớp lên nhau.'],
+    do: ['Thanh nằm sẵn trên chữ “Aa” và dải màu ở nền sáng: so mép thanh glass (chữ và dải màu bị bẻ cong) với blur (chỉ nhoè).', 'Kéo thanh sang nền tối ở cả hai nửa: glass tự tối lại theo nền, blur vẫn là mảng xám.'], files: ['GlassVsBlurDemo'] },
+  'he-thong': { time: '3:00–5:00', mode: 'Chỉ vào thanh điều hướng của app',
+    say: ['Build bằng SDK 26: `TabView`, toolbar, sheet, `Menu`, thanh tìm kiếm tự đổi sang Liquid Glass, không sửa code.', 'Phần lớn app chỉ cần tuỳ biến: tách nhóm nút bằng `ToolbarSpacer`, thu nhỏ tab bar khi cuộn, mini player bằng `tabViewBottomAccessory`.', 'Chỉ tự vẽ `glassEffect` cho control riêng của app. Phần còn lại của bài nói về phần này.'],
+    do: ['Chỉ vào nút back và ⌃ ⌄ của app demo: glass hệ thống, không có dòng `glassEffect` nào.'],
+    trap: ['Thêm `glassEffect` lên toolbar có sẵn là glass chồng glass.'], files: ['DemoCatalog'] },
 
-  l1: { time: '0:30', say: ['Level 1: mỗi lần chạm phải có phản hồi nhìn thấy và cảm nhận được.'] },
-  'l1-demo': { time: '1:00–5:00', mode: 'Demo 1',
+  l1: { time: '5:00', say: ['Level 1: mỗi lần chạm phải có phản hồi nhìn thấy và cảm nhận được.'] },
+  'l1-demo': { time: '5:30–8:00', mode: 'Demo 1',
     say: ['`.buttonStyle(.glass)` có sẵn highlight. View tự vẽ cần `.glassEffect(.regular.interactive())`.', '`sensoryFeedback` phát khi giá trị `trigger` đổi, không phát theo cử chỉ.'],
-    do: ['Bật/tắt `.interactive()`, đổi loại haptic.', 'Tắt “Chạm thì đổi trigger”: vẫn highlight nhưng mất haptic.'],
+    do: ['Tab Highlight: chạm nút trên (GOOD) rồi nút dưới (BAD).', 'Tab Haptic: chạm liên tục. Số dưới nút là “số lần chạm · giá trị trigger”: BAD đứng yên ở true nên chỉ rung lần đầu.'],
     trap: ['Haptic không chạy trên simulator.'], files: ['TouchFeedbackDemo'] },
 
-  l2: { time: '5:00', say: ['Level 2: đổi state thì morph liền mạch, không nhảy thẳng.'] },
-  'l2-demo': { time: '5:30–12:00', mode: 'Demo 2a · Live code tab Thêm / bớt',
+  l2: { time: '8:00', say: ['Level 2: đổi state thì morph liền mạch, không nhảy thẳng.'] },
+  'l2-demo': { time: '8:30–12:30', mode: 'Demo 2a · Live code tab Thêm / bớt',
     say: ['Hòa nhau: chung `GlassEffectContainer`, khoảng cách hai mép nhỏ hơn `spacing`.', 'Thêm/bớt: chung container, `glassEffectID` cùng `@Namespace`, state đổi trong `withAnimation`.', 'Đổi shape: cùng một view thì SwiftUI nội suy `frame` và `cornerRadius`, không cần ID.'],
-    do: ['Tab Hòa nhau: kéo nút phải lại gần, chỉnh `spacing`.', 'Tab Thêm / bớt: live code body `MorphMenu` (20 dòng).', 'Tab Đổi shape: chạm qua `.circle` → `.card` → `.menu`.'],
-    files: ['Level2', 'MorphMenu', 'BlendingDemo', 'ShapeMorphDemo'] },
-  'l2-pitfall': { time: '12:00–17:00', mode: 'Demo 2b · Điểm nhấn',
-    say: ['Morph hỏng: khác container, thiếu `withAnimation`, ID đổi theo state, khác `@Namespace`.', 'Không nội suy: `if/else` đổi identity, thiếu `animatableData`, `.animation` đặt sai chỗ, `Transaction` bị ghi đè.'],
-    do: ['Tab Morph hỏng: bật lần lượt từng lỗi, chạm nút. Hỏi: “Ai từng gặp lỗi này?”', 'Tab Không nội suy: chạm từng ô, bật “Sửa”. Chạy `-logTransactions YES` để in transaction.'],
-    files: ['BrokenMorphDemo', 'NoInterpolationDemo'] },
+    do: ['Tab Hòa nhau: BAD hai container, không bao giờ hòa.', 'Tab Thêm / bớt: live code `MorphMenu`; BAD bỏ ID và `withAnimation`.', 'Tab Đổi shape: BAD dùng `if/else`, chỉ fade.'],
+    files: ['Level2', 'MorphMenu', 'ShapeMorphDemo'] },
+  'l2-pitfall': { time: '12:30–15:00', mode: 'Demo 2b · Điểm nhấn',
+    say: ['Morph hỏng hay gặp nhất: mỗi nút tự bọc container riêng. Các lỗi khác: thiếu `withAnimation`, ID đổi theo state, khác `@Namespace`.', 'Shape tự viết thiếu `animatableData`: SwiftUI không có giá trị trung gian, path nhảy thẳng.'],
+    do: ['Tab Khác container: hỏi “Ai từng gặp lỗi này?”', 'Tab Thiếu animatableData: so cung tròn trên và dưới.'],
+    files: ['Level2'] },
 
-  l3: { time: '17:00', say: ['Level 3: chuyển động theo tay người dùng, bị ngắt giữa chừng vẫn mượt.'] },
-  'l3-demo': { time: '17:30–23:00', mode: 'Demo 3a · Bỏ phiếu',
-    say: ['Spring nhận vị trí và vận tốc hiện tại khi bị ngắt (`shouldMerge`). Timing curve cộng dồn nên chững lại.', 'Decay: Δ = v₀ / k để vận tốc đầu bằng vận tốc tay. k ≈ 2 /s như `UIScrollView`.'],
-    do: ['Tab Spring vs Ease: bấm A, B liên tục, bỏ phiếu, rồi bật “Hiện nhãn”.', 'Tab Decay: kéo và thả với nhiều tốc độ. Chỉ vào struct `Decay` (13 dòng).'],
-    files: ['Level3', 'SpringVsEaseDemo', 'Decay'] },
-  'l3-arc': { time: '23:00–25:00', mode: 'Demo 3b · Đọc code',
-    say: ['Đổi `offset`: nội suy x, y tuyến tính nên đi đường thẳng.', '`Layout` + `animatableData`: `placeSubviews` tính vị trí theo cung mỗi frame.'],
-    do: ['Đổi Layout + spring với KeyframeAnimator, chạm + giữa chừng.'], files: ['ArcMenu'] },
+  l3: { time: '15:00', say: ['Level 3: chuyển động theo tay người dùng, bị ngắt giữa chừng vẫn mượt.'] },
+  'l3-demo': { time: '15:30–19:00', mode: 'Demo 3 · Đọc code Decay',
+    say: ['Spring nhận vị trí và vận tốc hiện tại khi bị ngắt (`shouldMerge`), nên quay đầu ngay theo lệnh mới. Timing curve không merge: animation cũ vẫn chạy nốt và cộng dồn với animation mới, nên nút trôi tiếp về phía cũ rồi mới quay.', 'Decay: Δ = v₀ / k để vận tốc đầu bằng vận tốc tay. k ≈ 2 /s như `UIScrollView`.'],
+    do: ['Tab Bị ngắt: mỗi chu kỳ nút chạy sang phải, 0,35 s sau bị gọi về. Vệt bên dưới là đường đi, chấm trắng là lúc bị ngắt. GOOD quay đầu ngay tại chấm; BAD còn trôi tiếp một đoạn rồi mới quay. Chạm vào làn để tự ngắt.', 'Tab Thả tay: kéo thả mạnh; BAD dừng tại chỗ. Chỉ vào struct `Decay` (13 dòng).'],
+    files: ['Level3', 'Decay'] },
 
-  l4: { time: '25:00', say: ['Level 4: nền gợn sóng, méo theo ngón tay bằng Metal shader.'] },
-  'l4-demo': { time: '25:30–31:00', mode: 'Demo 4a · Live code tab Ripple',
-    say: ['`colorEffect` trả màu, `distortionEffect` trả vị trí nguồn, `layerEffect` đọc nhiều pixel.', 'Ripple: shader là hàm thuần; `keyframeAnimator` đưa `time` 0 → 1,5 s.', '`isEnabled` tắt shader khi sóng đã tắt.'],
-    do: ['Tab 3 modifier: kéo slider.', 'Tab Ripple: live code `.metal` + `.layerEffect`, chạm nền.'],
+  l4: { time: '19:00', say: ['Level 4: nền gợn sóng, méo theo ngón tay bằng Metal shader.'] },
+  'l4-demo': { time: '19:30–23:00', mode: 'Demo 4 · Đọc code tab Ripple',
+    say: ['So với ảnh gốc: `colorEffect` chỉ đổi màu (lưới vẫn thẳng), `distortionEffect` chỉ dời pixel (lưới lượn sóng, màu giữ nguyên), `layerEffect` trộn nhiều pixel (tách kênh màu ở mép chữ).', 'Ripple: shader là hàm thuần; `keyframeAnimator` đưa `time` 0 → 1,5 s.', 'GOOD: `isEnabled` tắt shader khi sóng xong. BAD: shader chạy mãi.'],
+    do: ['Tab 3 modifier: kéo slider cường độ về 0 rồi lên 100%.', 'Tab Ripple: đọc `ripple()` trong `.metal` và `.layerEffect`; nhìn icon tia sét ở góc: sáng khi shader đang chạy, mờ khi đã tắt.'],
     trap: ['Closure `keyframeAnimator` là `@Sendable`: capture `[origin]` trước.'], files: ['Level4', 'ThreeModifiersDemo', 'Ripple', 'Shaders.metal'] },
-  'l4-under': { time: '31:00–33:00', mode: 'Demo 4b · Chạy thử trên máy thật trước',
-    say: ['Đặt `distortionEffect` trên nền: glass khúc xạ nền đã méo, giữ viền và highlight.', 'Bọc cả nhóm glass: glass bị rasterize và biến mất (simulator iOS 27.1).'],
-    do: ['Kéo vùng méo, đổi dưới/trên, nghiêng máy.'], files: ['DistortionUnderGlassDemo'] },
 
-  integration: { time: '33:00–39:00', mode: 'Live build · Điểm nhấn',
-    say: ['Chiếu số dòng: “Cả màn hình: 53 dòng.”'],
-    do: ['Viết từ file trống. Lỗi thì mở `-demo cp1`, `cp2`, `cp3`.'], files: ['Checkpoint1', 'Checkpoint2', 'Checkpoint3', 'Finale'] },
-  performance: { time: '39:00–42:00', mode: 'Instruments',
-    say: ['Overlay chỉ đo main thread, không đo GPU.', 'Chỉ dùng số trên máy thật, ghi rõ model.'],
-    do: ['Chọn 5, 20, 50 ở 3 chế độ. Mở Metal System Trace, Animation Hitches. Điền bảng.'], files: ['GlassStressDemo'] },
-  notes: { time: '42:00–45:00', mode: 'Demo notes',
-    say: ['Glass khúc xạ và đổi theo nền; Material chỉ blur + tint.', 'Glass hệ thống tự thích ứng trợ năng; shader tự viết phải đọc `@Environment` để tắt.', 'Câu chốt: “Mỗi phần tử Liquid Glass phải trả lời được: chạm vào thì phản hồi gì?”'],
-    do: ['Tab Glass vs blur: bật “So với Material”.', 'Tab Trợ năng: bật Reduce Motion trong Cài đặt.', 'Tab Quy tắc: chạm để hiện từng quy tắc.'],
-    files: ['Notes', 'GlassVariantsDemo', 'AccessibilityDemo', 'ShipRulesDemo'] },
-  het: { time: '45:00', do: ['Mở link repo LiquidGlassAdvanced.'] },
+  'cfg-user': { time: '23:00–26:00', mode: 'Demo cfg',
+    say: ['Glass hệ thống tự đổi theo Giảm độ trong suốt, Tăng độ tương phản, sáng / tối. Không cần code.', 'Shader và spring tự viết thì không: đọc `@Environment` rồi tự tắt. `RippleOnTap` tắt `layerEffect` khi bật Giảm chuyển động.', 'iOS 26.1 có thêm lựa chọn Trong / Nhuộm màu. Không có API đọc lựa chọn này: kiểm tra giao diện ở cả hai.'],
+    do: ['Đổi icon trăng / mặt trời ở cuối màn hình để so glass sáng và tối.', 'Bật Giảm độ trong suốt và Giảm chuyển động trong Cài đặt, quay lại app, chạm nền.'],
+    files: ['SystemSettingsDemo', 'RippleModifier'] },
+  'cfg-app': { time: '26:00–28:00', mode: 'Đọc Info.plist',
+    say: ['`UIDesignRequiresCompatibility = YES`: build bằng SDK 26 mà vẫn giữ giao diện cũ. Đã thử trên SDK 27.1: vẫn có tác dụng.', 'App còn hỗ trợ iOS cũ: gói `#available` trong một `ViewModifier`, fallback `Material`.', 'Không có `CADisableMinimumFrameDurationOnPhone` thì `CADisplayLink` và animation tự viết tối đa 60 Hz trên iPhone.'],
+    trap: ['Apple nói key compatibility chỉ là tạm thời: không dựa vào lâu dài.'], files: ['Info.plist', 'SystemSettingsDemo'] },
+
+  'vi-du': { time: '28:00–38:00', mode: 'Demo photo → arc → match → lens (nút ⌄ để chuyển)',
+    say: ['photo: `.clear` cho nền nhiều hình ảnh, luôn kèm lớp `LinearGradient` làm tối phía sau nút.',
+      'arc: hai style cùng vị trí cuối. Quạt: `Layout` + `animatableData`, nút quét theo cung. Toả thẳng: `offset` + delay lần lượt, nút bắn thẳng ra từ tâm.',
+      'match: `matchedTransitionSource` + `.navigationTransition(.zoom)`, dùng cho cả sheet lẫn push. `matchedGeometryEffect` chỉ trong cùng một màn.',
+      'lens: cùng shader, hai style. Thấu kính bọc nền, glass giữ hình. Dẻo bọc cả nút, chỉ biến dạng lúc kéo.'],
+    do: ['photo: chờ mây trôi qua nút ở nửa BAD.', 'arc: chạm nút + ở hai nửa, so đường đi: cung tròn và đường thẳng.', 'match: tab Sheet chạm nút soạn bài rồi nút lọc; tab Hero chạm thẻ rồi vuốt back.', 'lens: kéo thấu kính; kéo ở mép nút dẻo rồi thả.'],
+    files: ['PhotoControlsDemo', 'ArcMenu', 'MatchedTransitionDemo', 'DistortionUnderGlassDemo'] },
+
+  'nguyen-tac': { time: '38:00–40:30',
+    say: ['Mỗi nguyên tắc gắn với một phần đã demo: 1 → `0`, `photo` · 2 → Level 1 · 3 → Level 2 · 4 → Level 3 · 5 → Level 4, `lens` · 6 → `cfg`, slide tiếp theo.', 'Câu chốt: “Mỗi phần tử Liquid Glass phải trả lời được: chạm vào thì phản hồi gì?”'] },
+  performance: { time: '40:30–43:00', mode: 'Chỉ nói, không demo',
+    say: ['Glass do render server vẽ trên GPU. Time Profiler và các đồng hồ đo trên main thread không thấy được phần này.', 'Instruments: Metal System Trace cho thời gian GPU mỗi frame, Animation Hitches cho các frame trễ.', 'Hai việc rẻ nhất: gom glass vào chung `GlassEffectContainer`, tắt shader bằng `isEnabled` khi không chạy. `Shader.compile(as:)` lúc khởi động để tránh khựng lần đầu.', 'Chỉ dùng số đo trên máy thật, ghi rõ model.'] },
+  het: { time: '43:00–45:00', do: ['Mở link repo LiquidGlassAdvanced.'] },
 };

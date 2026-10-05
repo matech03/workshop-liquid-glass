@@ -1,53 +1,56 @@
 import SwiftUI
 
 /// Level 2 · Đổi shape: một view, ba trạng thái `.circle` → `.card` → `.menu`.
-/// View giữ nguyên identity, chỉ đổi frame + corner radius → SwiftUI nội suy shape của glass, không cần glassEffectID.
-/// glassEffectID dùng khi view được THÊM hoặc BỚT (identity thay đổi), như tab Thêm / bớt.
+/// GOOD: giữ một view, chỉ đổi frame + corner radius → SwiftUI nội suy shape, glass morph theo.
+/// BAD (`splitViews`): mỗi trạng thái là một nhánh if/else riêng → identity đổi, SwiftUI chỉ fade, không morph.
 enum ShapeState: CaseIterable { case circle, card, menu }
 
 struct MorphingGlass: View {
-    @Binding var state: ShapeState
-
-    private var size: CGSize {
-        switch state {
-        case .circle:  CGSize(width: 64, height: 64)
-        case .card: CGSize(width: 300, height: 150)
-        case .menu: CGSize(width: 240, height: 250)
-        }
-    }
-    private var radius: CGFloat { state == .menu ? 28 : 32 } // .circle: radius = 64 / 2 nên ra hình tròn
+    var splitViews = false
+    @State private var state = ShapeState.circle
 
     var body: some View {
+        Group {
+            if splitViews {
+                // Mỗi nhánh là một view khác: glassEffect gắn vào từng nhánh
+                switch state {
+                case .circle: shaped(.circle)
+                case .card: shaped(.card)
+                case .menu: shaped(.menu)
+                }
+            } else {
+                shaped(state)
+            }
+        }
+        .onTapGesture { go(state.next) }
+        .sensoryFeedback(.impact, trigger: state)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.6))
+                go(state.next)
+            }
+        }
+    }
+
+    private func shaped(_ s: ShapeState) -> some View {
         ZStack {
             // Transition gắn vào TỪNG nhánh của switch: đó là các view được thêm/bớt.
-            // Đặt .transition trên ZStack không có tác dụng vì ZStack không bị thêm/bớt.
-            switch state {
+            switch s {
             case .circle:
-                Image(systemName: "sparkles").font(.title2)
-                    .transition(content)
+                Image(systemName: "sparkles").font(.title2).transition(content)
             case .card:
-                Text("Chạm để mở menu").font(.headline)
-                    .transition(content)
+                Text("Chạm để mở menu").font(.headline).transition(content)
             case .menu:
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 10) {
                     Label("Ảnh", systemImage: "photo")
                     Label("Tệp", systemImage: "doc")
-                    Label("Thu gọn", systemImage: "xmark")
-                        .onTapGesture { go(.circle) }
                 }
-                .font(.title3)
-                .padding(20)
+                .font(.headline)
                 .transition(content)
             }
         }
-        .frame(width: size.width, height: size.height)
-        .glassEffect(.regular.interactive(), in: .rect(cornerRadius: radius))
-        .onTapGesture {
-            if state == .circle { go(.card) }
-            else if state == .card { go(.menu) }
-        }
-        .sensoryFeedback(.impact, trigger: state)
-        .autoplay(every: 1.6) { go(state.next) }
+        .frame(width: s.size.width, height: s.size.height)
+        .glassEffect(.regular.interactive(), in: .rect(cornerRadius: s.radius))
     }
 
     /// Nội dung hiện sau khung glass 0.15 s (chờ shape gần xong), ẩn nhanh khi rời đi.
@@ -65,34 +68,20 @@ struct MorphingGlass: View {
 }
 
 private extension ShapeState {
+    var size: CGSize {
+        switch self {
+        case .circle: CGSize(width: 64, height: 64)
+        case .card: CGSize(width: 240, height: 90)
+        case .menu: CGSize(width: 170, height: 120)
+        }
+    }
+
+    var radius: CGFloat { self == .circle ? 32 : 26 } // .circle: 64 / 2 nên ra hình tròn
+
     var next: ShapeState {
         let all = Self.allCases
         return all[(all.firstIndex(of: self)! + 1) % all.count]
     }
 }
 
-struct ShapeMorphDemo: View {
-    @State private var state: ShapeState = .circle
-
-    var body: some View {
-        ZStack {
-            Backdrop()
-            MorphingGlass(state: $state)
-        }
-        .safeAreaInset(edge: .bottom) {
-            HStack(spacing: 8) {
-                ForEach(ShapeState.allCases, id: \.self) { s in
-                    Text(".\(String(describing: s))")
-                        .font(.callout.monospaced().weight(s == state ? .bold : .regular))
-                        .foregroundStyle(s == state ? .primary : .secondary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(.black.opacity(s == state ? 0.6 : 0.3), in: .capsule)
-                }
-            }
-            .padding(.bottom, 8)
-        }
-    }
-}
-
-#Preview { ShapeMorphDemo() }
+#Preview { MorphingGlass() }

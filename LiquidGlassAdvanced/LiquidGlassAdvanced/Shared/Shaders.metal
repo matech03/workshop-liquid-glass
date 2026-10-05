@@ -5,7 +5,7 @@ using namespace metal;
 // Kiểu dữ liệu: half cho màu (đủ chính xác, nhanh hơn trên GPU Apple),
 // float cho tọa độ. half chỉ biểu diễn chính xác số nguyên tới 2048, không đủ cho tọa độ pixel.
 
-// MARK: - Slide 13. Ba modifier, ba signature
+// MARK: - Level 4 · Ba modifier, ba signature
 
 // colorEffect: nhận vị trí + màu hiện tại, trả về màu mới của pixel.
 [[ stitchable ]]
@@ -15,10 +15,10 @@ half4 duotone(float2 position, half4 color, half4 dark, half4 light) {
 }
 
 // distortionEffect: chỉ nhận vị trí, trả về tọa độ NGUỒN để lấy mẫu (lấy pixel từ đâu),
-// không phải đích đến của pixel. Trả về position + dx thì nội dung dịch sang trái.
+// không phải đích đến của pixel. Màu không đổi, chỉ hình dạng đổi.
 [[ stitchable ]]
-float2 shift(float2 position, float dx) {
-    return position + float2(dx, 0.0);
+float2 wave(float2 position, float amplitude) {
+    return position + float2(sin(position.y * 0.08) * amplitude, 0.0);
 }
 
 // layerEffect: nhận cả layer, gọi layer.sample() bao nhiêu lần tùy ý, trả về màu.
@@ -30,7 +30,7 @@ half4 chromatic(float2 position, SwiftUI::Layer layer, float amount) {
     return half4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
 }
 
-// MARK: - Slide 14. Ripple tại điểm chạm
+// MARK: - Level 4 · Ripple tại điểm chạm
 
 [[ stitchable ]]
 half4 ripple(float2 position, SwiftUI::Layer layer, float2 origin, float time,
@@ -46,21 +46,12 @@ half4 ripple(float2 position, SwiftUI::Layer layer, float2 origin, float time,
     return color;
 }
 
-// MARK: - Slide 15. Biến dạng nền dưới glass, highlight theo góc nghiêng
+// MARK: - Ví dụ · Biến dạng nền dưới glass
 
 [[ stitchable ]]
 float2 fingerWarp(float2 position, float2 center, float radius, float strength, float time) {
     float2 d = position - center;
     float k = exp(-dot(d, d) / (radius * radius));            // trọng số Gauss theo khoảng cách tới tâm
-    float wobble = sin(length(d) * 0.045 - time * 2.5) * 5.0 * k;
+    float wobble = sin(length(d) * 0.045 - time * 2.5) * 12.0 * k * strength; // strength = 0: không méo gì
     return position - d * k * strength + wobble;               // lấy mẫu gần tâm hơn → phóng to vùng quanh tâm
-}
-
-[[ stitchable ]]
-half4 sheen(float2 position, half4 color, float4 bounds, float2 tilt) {
-    float2 uv = (position - bounds.xy) / bounds.zw - 0.5;
-    float2 light = -tilt * 0.3;                                // highlight dịch ngược hướng nghiêng
-    float spot = exp(-dot(uv - light, uv - light) * 60.0) * 0.55;
-    float band = smoothstep(0.035, 0.0, abs(uv.x + uv.y - (light.x + light.y) * 1.3)) * 0.12;
-    return half4(half((spot + band) * color.a));               // trắng premultiplied
 }

@@ -2,42 +2,38 @@ import SwiftUI
 
 // Level 2 · LIVE CODE: nút "+" thêm/bớt các nút con. Morph bằng glassEffectID + @Namespace,
 // thay đổi state bọc trong withAnimation. Phần cốt lõi là struct MorphMenu: body 20 dòng.
+// `broken`: bản BAD, bỏ glassEffectID và withAnimation → nút con hiện ra tức thì, không morph.
 
 struct MorphMenu: View {
+    var broken = false
     @State private var open = false
     @Namespace private var ns
 
     var body: some View {
         GlassEffectContainer(spacing: 24) {
-            VStack(spacing: 12) {
-                if open {
-                    Button("Ảnh", systemImage: "photo") {}
-                        .buttonStyle(.glass)
-                        .glassEffectID("photo", in: ns)
-                    Button("Tệp", systemImage: "doc") {}
-                        .buttonStyle(.glass)
-                        .glassEffectID("file", in: ns)
-                }
-                Button { withAnimation(.bouncy) { open.toggle() } } label: {
+            HStack(spacing: 12) {
+                Button { toggle() } label: {
                     Image(systemName: open ? "xmark" : "plus").frame(width: 44, height: 44)
                 }
                 .buttonStyle(.glass)
                 .glassEffectID("toggle", in: ns)
+                if open {
+                    Button("Ảnh", systemImage: "photo") {}
+                        .buttonStyle(.glass)
+                        .glassEffectID(broken ? "photo-\(open)" : "photo", in: ns)
+                    Button("Tệp", systemImage: "doc") {}
+                        .buttonStyle(.glass)
+                        .glassEffectID(broken ? "file-\(open)" : "file", in: ns)
+                }
             }
         }
+        .controlSize(.large)
         .sensoryFeedback(.selection, trigger: open)
     }
-}
 
-/// Khung trình chiếu: nền nhiều màu để thấy khúc xạ. Thanh trượt spacing nằm ở tab Hòa nhau.
-struct MorphMenuDemo: View {
-    var body: some View {
-        ZStack {
-            Backdrop()
-            MorphMenu()
-                .controlSize(.large)
-        }
+    private func toggle() {
+        if broken { open.toggle() } else { withAnimation(.bouncy) { open.toggle() } }
     }
 }
 
-#Preview { MorphMenuDemo() }
+#Preview { MorphMenu() }

@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode: giữ project.pbxproj và xcshareddata (scheme dùng chung), bỏ dữ liệu riêng từng máy
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+build/
+*.xcresult
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Node (slides/tools): cài lại bằng `npm install`
+node_modules/
+npm-debug.log*
+
+# Office: file khoá khi đang mở pptx bằng PowerPoint / Keynote
+~$*
+*.pptx#
