@@ -51,6 +51,7 @@ struct Pane<Content: View>: View {
     let label: PaneLabel
     let code: String
     @ViewBuilder var content: Content
+    @Environment(\.showsCode) private var showsCode
 
     var body: some View {
         content
@@ -62,11 +63,14 @@ struct Pane<Content: View>: View {
                 HStack(spacing: 8) {
                     Circle().fill(label.color).frame(width: 7, height: 7)
                     Text(label.text).font(.caption.weight(.semibold))
-                    Text(code)
-                        .font(.caption.monospaced())
-                        .foregroundStyle(.white.opacity(0.9))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
+                    if showsCode {
+                        Text(code)
+                            .font(.caption.monospaced())
+                            .foregroundStyle(.white.opacity(0.9))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                            .transition(.opacity)
+                    }
                 }
                 .foregroundStyle(Palette.label)
                 .padding(.horizontal, 10)

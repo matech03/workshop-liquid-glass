@@ -10,18 +10,19 @@ struct MorphMenu: View {
     @Namespace private var ns
 
     var body: some View {
-        GlassEffectContainer(spacing: 24) {
-            HStack(spacing: 12) {
+        GlassEffectContainer(spacing: 12) {
+            HStack(spacing: 20) { // lớn hơn spacing của container: lúc nghỉ các nút không dính vào nhau
                 Button { toggle() } label: {
                     Image(systemName: open ? "xmark" : "plus").frame(width: 44, height: 44)
                 }
                 .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
                 .glassEffectID("toggle", in: ns)
                 if open {
-                    Button("Ảnh", systemImage: "photo") {}
+                    Button("Photo", systemImage: "photo") {}
                         .buttonStyle(.glass)
                         .glassEffectID(broken ? "photo-\(open)" : "photo", in: ns)
-                    Button("Tệp", systemImage: "doc") {}
+                    Button("File", systemImage: "doc") {}
                         .buttonStyle(.glass)
                         .glassEffectID(broken ? "file-\(open)" : "file", in: ns)
                 }

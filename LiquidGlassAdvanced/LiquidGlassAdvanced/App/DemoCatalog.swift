@@ -1,72 +1,78 @@
 import SwiftUI
 
-// App đi theo bài: giới thiệu → 4 level → cấu hình hệ thống → ví dụ. Phần nguyên tắc chỉ có trên slide.
-// Mỗi demo so sánh chia đôi màn hình (GoodBad / Compare). Màn hình nhiều demo dùng tab (DemoTabs).
-// Màn hình ít chữ: hướng dẫn thao tác và dòng code nằm trên slide, không nằm trong app.
+// App đi theo bài (outline ở README gốc): Introduction → Implement levels → Examples. Phần Summary chỉ có trên slide.
+// Mỗi demo so sánh chia đôi màn hình (GoodBad / Compare). Màn hình nhiều demo chọn demo bằng menu trên tiêu đề (DemoTabs).
+// Màn hình ít chữ: hướng dẫn thao tác nằm trong README, dòng code hiện bằng nút ⓘ.
 
-enum Part: String, CaseIterable, Identifiable {
-    case intro = "Giới thiệu"
-    case level1 = "Level 1 · Phản hồi chạm"
-    case level2 = "Level 2 · Chuyển trạng thái"
-    case level3 = "Level 3 · Chuyển động vật lý"
-    case level4 = "Level 4 · Biến dạng tại điểm chạm"
-    case config = "Cấu hình hệ thống"
-    case examples = "Ví dụ"
+/// Ba nhóm trên màn home, trùng ba phần có demo trong outline slide (README).
+enum Chapter: String, CaseIterable, Identifiable {
+    case intro = "Introduction"
+    case levels = "Implement levels"
+    case examples = "Examples"
 
     var id: Self { self }
-    var demos: [DemoID] { DemoID.allCases.filter { $0.part == self } }
-
+    var demos: [DemoID] { DemoID.allCases.filter { $0.chapter == self } }
 }
 
 enum DemoID: String, CaseIterable, Identifiable, Hashable {
-    case intro, l1, l2a, l2b, l3, l4
+    case intro, l1, l2, l3, l4
     case settings
-    case photo, arc, match, lens
+    case photo, arc, match, fx
 
     var id: Self { self }
 
-    /// Khoá hiện ở danh sách, trùng nhãn DEMO trên slide.
+    /// Khoá hiện ở danh sách, trùng cột Màn trong outline (README).
     var key: String {
         switch self {
         case .intro: "0"
         case .l1: "1"
-        case .l2a: "2a"
-        case .l2b: "2b"
+        case .l2: "2"
         case .l3: "3"
         case .l4: "4"
         case .settings: "cfg"
         case .photo: "photo"
         case .arc: "arc"
         case .match: "match"
-        case .lens: "lens"
+        case .fx: "fx"
         }
     }
 
-    var part: Part {
+    var chapter: Chapter {
         switch self {
         case .intro: .intro
-        case .l1: .level1
-        case .l2a, .l2b: .level2
-        case .l3: .level3
-        case .l4: .level4
-        case .settings: .config
-        case .photo, .arc, .match, .lens: .examples
+        case .l1, .l2, .l3, .l4, .settings: .levels
+        case .photo, .arc, .match, .fx: .examples
         }
     }
 
     var title: String {
         switch self {
-        case .intro: "Glass và blur"
-        case .l1: "Phản hồi chạm"
-        case .l2a: "Morph"
-        case .l2b: "Lỗi morph"
-        case .l3: "Spring và decay"
+        case .intro: "Glass vs blur"
+        case .l1: "Interactive glass"
+        case .l2: "Morph"
+        case .l3: "Physics"
         case .l4: "Shader"
-        case .settings: "Cài đặt người dùng"
-        case .photo: "Nút trên ảnh"
-        case .arc: "Menu cung tròn"
-        case .match: "Chuyển cảnh"
-        case .lens: "Biến dạng"
+        case .settings: "User settings"
+        case .photo: "Controls on photos"
+        case .arc: "Arc menu"
+        case .match: "Transitions"
+        case .fx: "Shader effects"
+        }
+    }
+
+    /// Keyword dưới tên màn: nội dung chính của demo.
+    var subtitle: String {
+        switch self {
+        case .intro: "Refraction · scroll edge"
+        case .l1: "Glass styles · highlight · haptic · union"
+        case .l2: "Blend · add / remove · shape · pitfalls"
+        case .l3: "Interrupt · drag & release · spring presets"
+        case .l4: "Color · distortion · layer effect"
+        case .settings: "Accessibility · light / dark"
+        case .photo: ".clear over images"
+        case .arc: "Custom Layout · animatableData"
+        case .match: "Zoom transition · sheet · push"
+        case .fx: "Ripple · vortex · glitch · lens"
         }
     }
 
@@ -74,47 +80,45 @@ enum DemoID: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .intro: GlassVsBlurDemo()
         case .l1: TouchFeedbackDemo()
-        case .l2a: Level2_Morph()
-        case .l2b: Level2_Pitfalls()
+        case .l2: Level2_Morph()
         case .l3: Level3_Motion()
         case .l4: Level4_Shaders()
         case .settings: SystemSettingsDemo()
         case .photo: PhotoControlsDemo()
         case .arc: ArcMenuDemo()
         case .match: MatchedTransitionDemo()
-        case .lens: DistortionUnderGlassDemo()
+        case .fx: ShaderEffectsDemo()
         }
-    }
-
-    var next: DemoID? { offset(1) }
-    var previous: DemoID? { offset(-1) }
-
-    private func offset(_ step: Int) -> DemoID? {
-        let all = Self.allCases
-        let i = all.firstIndex(of: self)! + step
-        return all.indices.contains(i) ? all[i] : nil
     }
 }
 
 struct RootView: View {
     @State private var path: [DemoID] = []
+    @State private var showsCode = false // giữ nguyên khi chuyển màn
 
     var body: some View {
         NavigationStack(path: $path) {
             List {
-                ForEach(Part.allCases) { part in
-                    Section(part.rawValue) {
-                        ForEach(part.demos) { demo in
+                ForEach(Chapter.allCases) { chapter in
+                    Section {
+                        ForEach(chapter.demos) { demo in
                             NavigationLink(value: demo) { DemoRow(demo: demo) }
+                                .listRowBackground(Palette.surface)
                         }
+                    } header: {
+                        Text(chapter.rawValue)
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(Palette.label)
+                            .textCase(nil)
                     }
                 }
             }
+            .listSectionSpacing(28)
             .scrollContentBackground(.hidden)
             .background(Palette.background)
             .navigationTitle("Liquid Glass")
             .navigationDestination(for: DemoID.self) { demo in
-                DemoContainer(demo: demo, path: $path)
+                DemoContainer(demo: demo, showsCode: $showsCode)
             }
         }
         .task { await ShaderWarmup.run() }
@@ -126,38 +130,69 @@ private struct DemoRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
+            // Khoá màn hình, trùng nhãn DEMO trên slide
             Text(demo.key)
-                .font(.system(.footnote, design: .rounded).weight(.semibold))
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .frame(width: 38, alignment: .leading)
-            Text(demo.title)
+                .font(.caption.monospaced().weight(.semibold))
+                .foregroundStyle(Palette.label)
+                .frame(width: 52, height: 26)
+                .background(.white.opacity(0.06), in: .capsule)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(demo.title).font(.body.weight(.medium))
+                Text(demo.subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
         }
+        .padding(.vertical, 4)
     }
 }
 
-/// Khung chung: tên màn ở tiêu đề, nút lên/xuống để chuyển nhanh.
+/// Khung chung: tên màn ở tiêu đề, nút ⓘ hiện / ẩn keyword và code.
 /// Thanh điều hướng và các nút ở đây là glass của hệ thống: không có dòng glassEffect nào.
+/// Tắt vuốt để back (cạnh trái và toàn màn hình): demo có nhiều thao tác kéo, dễ vuốt nhầm. Back bằng nút.
 private struct DemoContainer: View {
     let demo: DemoID
-    @Binding var path: [DemoID]
+    @Binding var showsCode: Bool
 
     var body: some View {
         demo.screen
+            .environment(\.showsCode, showsCode)
             .navigationTitle(demo.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button("Màn trước", systemImage: "chevron.up") { go(demo.previous) }
-                        .disabled(demo.previous == nil)
-                    Button("Màn sau", systemImage: "chevron.down") { go(demo.next) }
-                        .disabled(demo.next == nil)
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Hints", systemImage: "info.circle") {
+                        withAnimation(.smooth(duration: 0.25)) { showsCode.toggle() }
+                    }
+                    .tint(showsCode ? Palette.accent : nil)
                 }
             }
+            .background { SwipeBackDisabler() }
     }
+}
 
-    private func go(_ target: DemoID?) {
-        guard let target else { return }
-        path = [target]
+/// SwiftUI chưa có API tắt vuốt back của NavigationStack: tắt thẳng hai gesture của UINavigationController.
+/// Chỉ tắt khi màn demo đang hiện. Màn con push từ demo (vd Hero trong `match`) vẫn vuốt back được.
+private struct SwipeBackDisabler: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> Controller { Controller() }
+    func updateUIViewController(_ controller: Controller, context: Context) {}
+
+    final class Controller: UIViewController {
+        override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            setSwipeBack(enabled: false)
+        }
+
+        override func viewWillDisappear(_ animated: Bool) {
+            super.viewWillDisappear(animated)
+            setSwipeBack(enabled: true)
+        }
+
+        private func setSwipeBack(enabled: Bool) {
+            guard let nav = navigationController else { return }
+            nav.interactivePopGestureRecognizer?.isEnabled = enabled        // vuốt từ cạnh trái
+            nav.interactiveContentPopGestureRecognizer?.isEnabled = enabled // iOS 26: vuốt từ bất kỳ đâu
+        }
     }
 }

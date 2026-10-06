@@ -12,6 +12,7 @@ enum Palette {
     static let bad = Color(red: 0.95, green: 0.55, blue: 0.50)
     static let warm = Color(red: 0.96, green: 0.70, blue: 0.52)
     static let neutral = Color.white.opacity(0.45)
+    static let like = Color(red: 1.0, green: 0.30, blue: 0.42) // tim đã thích: đủ đậm để nổi trên cả glass .clear và .tint
 
     /// Màu dịu cho nền nhiều màu, thẻ ảnh, ảnh mẫu shader
     static let navy = Color(red: 0.11, green: 0.12, blue: 0.24)

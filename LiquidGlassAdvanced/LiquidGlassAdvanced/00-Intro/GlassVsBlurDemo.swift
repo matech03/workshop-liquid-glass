@@ -1,89 +1,110 @@
 import SwiftUI
 
-/// Giới thiệu · Liquid Glass so với blur + tint, trên cùng một nền.
-/// Liquid Glass khúc xạ nền, có highlight và tự đổi độ sáng theo nền; Material chỉ làm mờ và phủ màu.
-/// Kéo thanh công cụ qua vùng sáng và vùng tối để thấy khác biệt.
+/// Giới thiệu · Liquid Glass so với blur + tint. Mỗi nửa: nội dung cuộn dưới một nhóm nút nổi ở góc dưới phải.
+/// Nội dung xen kẽ khối nền sáng và nền tối, mỗi khối có chữ to và một dải màu. Cuộn để các khối đi qua dưới thanh:
+/// - Khúc xạ: glass bẻ cong nét chữ và dải màu ở mép thanh, tự sáng / tối theo khối bên dưới; blur chỉ là một mảng nhoè xám.
+/// - Scroll edge: `safeAreaBar` đăng ký thanh với ScrollView, nội dung mờ dần ở mép dưới;
+///   blur kiểu cũ (`safeAreaInset`, tắt edge effect) cắt ngang, nội dung trôi thẳng vào dưới thanh.
 struct GlassVsBlurDemo: View {
     var body: some View {
-        Compare(top: .glass, topCode: ".glassEffect(.regular)", bottom: .blur, bottomCode: ".background(.ultraThinMaterial)") {
-            ZStack { LightDarkBackdrop(); DraggableToolbar(usesGlass: true) }
+        Compare(top: .glass, topCode: ".glassEffect · .safeAreaBar", bottom: .blur, bottomCode: ".ultraThinMaterial · .safeAreaInset") {
+            Feed(usesGlass: true)
         } bottomContent: {
-            ZStack { LightDarkBackdrop(); DraggableToolbar(usesGlass: false) }
+            Feed(usesGlass: false)
         }
     }
 }
 
-/// Nền so sánh: trái sáng, phải tối. Mỗi bên có chữ to và một dải màu chạy ngang đúng chỗ thanh công cụ nằm.
-/// Glass bẻ cong nét chữ và dải màu ở mép thanh, giữa thanh vẫn đọc được; blur chỉ còn một mảng nhoè.
-/// Hai nửa màn hình dùng cùng một nền tĩnh để chỉ còn khác nhau ở lớp glass / blur.
-private struct LightDarkBackdrop: View {
-    var body: some View {
-        HStack(spacing: 0) {
-            side(light: true)
-            side(light: false)
-        }
-    }
-
-    private func side(light: Bool) -> some View {
-        let ink: Color = light ? Palette.navy : .white
-        return ZStack {
-            light ? Color(white: 0.94) : Palette.background
-            VStack(spacing: 6) {
-                Text("Aa").font(.system(size: 64, weight: .heavy, design: .rounded))
-                Capsule()
-                    .fill(LinearGradient(colors: [Palette.rose, Palette.peach, Palette.teal], startPoint: .leading, endPoint: .trailing))
-                    .frame(height: 14)
-                    .padding(.horizontal, 18)
-                Text("Glass").font(.system(size: 30, weight: .bold, design: .rounded))
-            }
-            .foregroundStyle(ink)
-        }
-    }
-}
-
-private extension PaneLabel {
-    static let glass = PaneLabel(text: "Liquid Glass", color: Palette.accent)
-    static let blur = PaneLabel(text: "Blur", color: Palette.neutral)
-}
-
-private struct DraggableToolbar: View {
+private struct Feed: View {
     let usesGlass: Bool
-    @State private var offset: CGSize?
-    @State private var dragStart: CGSize?
-    @State private var width: CGFloat = 0
+    private let colors = [Palette.rose, Palette.peach, Palette.teal, Palette.violet]
 
     var body: some View {
-        // Mặc định nằm giữa nửa sáng; kéo sang phải để so trên nền tối
-        let current = offset ?? CGSize(width: -width / 4, height: 0)
-        return toolbar
-            .offset(current)
-            .gesture(DragGesture()
-                .onChanged { v in
-                    let start = dragStart ?? current
-                    dragStart = start
-                    offset = CGSize(width: start.width + v.translation.width, height: start.height + v.translation.height)
+        let feed = ScrollView {
+            VStack(spacing: 10) {
+                ForEach(0..<4, id: \.self) { i in
+                    TextBlock(light: !i.isMultiple(of: 2)) // khối tối trước: khối sáng thứ hai nằm sẵn dưới nhóm nút
+                    card(colors[i])
+                    card(colors[(i + 2) % colors.count])
                 }
-                .onEnded { _ in dragStart = nil })
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 44) // chừa chỗ cho nhãn Liquid Glass / Blur ở góc trái
+            .padding(.bottom, 14)
+        }
+
+        if usesGlass {
+            feed
+                .scrollEdgeEffectStyle(.soft, for: .bottom)
+                .safeAreaBar(edge: .bottom) { bar }
+        } else {
+            feed
+                .scrollEdgeEffectHidden(true, for: .bottom)
+                .safeAreaInset(edge: .bottom) { bar }
+        }
     }
 
-    @ViewBuilder private var toolbar: some View {
-        // Đủ hẹp để nằm trọn trong một nửa nền (sáng hoặc tối)
+    private func card(_ color: Color) -> some View {
+        HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 10).fill(color).frame(width: 44, height: 44)
+            VStack(alignment: .leading, spacing: 6) {
+                Capsule().fill(.white.opacity(0.85)).frame(width: 140, height: 9)
+                Capsule().fill(.white.opacity(0.4)).frame(width: 90, height: 7)
+            }
+            Spacer()
+        }
+        .padding(10)
+        .background(color.opacity(0.25), in: .rect(cornerRadius: 16))
+    }
+
+    @ViewBuilder private var bar: some View {
         let icons = HStack(spacing: 20) {
             ForEach(["magnifyingglass", "heart", "square.and.arrow.up"], id: \.self) {
                 Image(systemName: $0).font(.title3)
             }
         }
         .padding(.horizontal, 20)
-        .frame(height: 56)
+        .frame(height: 50)
 
-        if usesGlass {
-            icons.glassEffect(.regular.interactive(), in: .capsule)
-        } else {
-            icons.background(.ultraThinMaterial, in: .capsule)
+        Group {
+            if usesGlass {
+                icons.glassEffect(.regular.interactive(), in: .capsule)
+            } else {
+                icons.background(.ultraThinMaterial, in: .capsule)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .padding(.horizontal, 14)
+        .padding(.top, 6)
+        .padding(.bottom, 14)
     }
+}
+
+/// Khối chữ to và dải màu trên nền sáng hoặc tối: chi tiết để thấy khúc xạ, độ sáng để thấy glass đổi theo nền.
+private struct TextBlock: View {
+    let light: Bool
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Text("Aa").font(.system(size: 52, weight: .heavy, design: .rounded))
+            VStack(alignment: .leading, spacing: 8) {
+                Capsule()
+                    .fill(LinearGradient(colors: [Palette.rose, Palette.peach, Palette.teal], startPoint: .leading, endPoint: .trailing))
+                    .frame(height: 12)
+                Text("Glass").font(.system(size: 26, weight: .bold, design: .rounded))
+            }
+        }
+        .foregroundStyle(light ? Palette.navy : .white)
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(light ? Color(white: 0.94) : Palette.background, in: .rect(cornerRadius: 16))
+        .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(Palette.hairline) }
+    }
+}
+
+private extension PaneLabel {
+    static let glass = PaneLabel(text: "Liquid Glass", color: Palette.accent)
+    static let blur = PaneLabel(text: "Blur", color: Palette.neutral)
 }
 
 #Preview { GlassVsBlurDemo() }

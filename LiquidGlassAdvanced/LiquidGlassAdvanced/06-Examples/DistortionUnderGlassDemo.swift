@@ -1,27 +1,13 @@
 import SwiftUI
 
-/// Ví dụ · Độc đáo: hai style biến dạng bằng distortionEffect (kỹ thuật Level 4). Khác nhau ở chỗ shader bọc gì.
-/// Thấu kính: shader bọc nền, glass ở trên. Glass giữ nguyên hình, khúc xạ phần nền đã phóng to: hợp cho kính lúp, vùng chọn.
-/// Dẻo: shader bọc cả nền lẫn nút glass, nên chính nút cong theo ngón tay. Chữ cũng cong và vùng chạm vẫn ở frame cũ,
+/// Ví dụ · Shader effects: hai hiệu ứng biến dạng bằng distortionEffect (kỹ thuật Level 4). Khác nhau ở chỗ shader bọc gì.
+/// Lens: shader bọc nền, glass ở trên. Glass giữ nguyên hình, khúc xạ phần nền đã phóng to: hợp cho kính lúp, vùng chọn.
+/// Jelly: shader bọc cả nền lẫn nút glass, nên chính nút cong theo ngón tay. Chữ cũng cong và vùng chạm vẫn ở frame cũ,
 /// nên chỉ biến dạng lúc đang kéo; thả tay thì spring đưa lực về 0, nút rung nhẹ rồi về đúng hình.
-struct DistortionUnderGlassDemo: View {
-    var body: some View {
-        Compare(top: .lens, topCode: "nền.distortionEffect · glass ở trên", bottom: .jelly, bottomCode: "ZStack { nền; nút }.distortionEffect") {
-            LensField()
-        } bottomContent: {
-            JellyField()
-        }
-    }
-}
-
-private extension PaneLabel {
-    static let lens = PaneLabel(text: "Thấu kính", color: Palette.accent)
-    static let jelly = PaneLabel(text: "Dẻo", color: Palette.warm)
-}
 
 // MARK: - Thấu kính
 
-private struct LensField: View {
+struct LensField: View {
     @State private var center: CGPoint?
     @State private var dragging = false
     private let lens: CGFloat = 130
@@ -60,7 +46,7 @@ private struct LensField: View {
 
 // MARK: - Dẻo
 
-private struct JellyField: View {
+struct JellyField: View {
     @State private var center: CGPoint?
     @State private var strength = 0.0
     @State private var taps = 0
@@ -91,7 +77,7 @@ private struct JellyField: View {
 
     private var postButton: some View {
         Button { taps += 1 } label: {
-            Label("Đăng bài", systemImage: "paperplane.fill")
+            Label("Post", systemImage: "paperplane.fill")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .frame(width: 210, height: 60)
@@ -150,4 +136,4 @@ private struct Warp: ViewModifier, Animatable {
     }
 }
 
-#Preview { DistortionUnderGlassDemo() }
+#Preview { LensField() }

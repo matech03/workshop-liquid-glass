@@ -6,7 +6,7 @@ import SwiftUI
 /// Nền phẳng hoặc nền chữ thì dùng `.regular`.
 struct PhotoControlsDemo: View {
     var body: some View {
-        GoodBad(good: ".clear + LinearGradient làm tối", bad: ".clear trên nền sáng") {
+        GoodBad(good: ".clear + darkening LinearGradient", bad: ".clear on a bright background") {
             PlayerOverlay(dims: true)
         } badContent: {
             PlayerOverlay(dims: false)

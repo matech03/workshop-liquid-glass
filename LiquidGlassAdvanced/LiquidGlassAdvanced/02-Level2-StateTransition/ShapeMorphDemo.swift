@@ -24,12 +24,6 @@ struct MorphingGlass: View {
         }
         .onTapGesture { go(state.next) }
         .sensoryFeedback(.impact, trigger: state)
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1.6))
-                go(state.next)
-            }
-        }
     }
 
     private func shaped(_ s: ShapeState) -> some View {
@@ -39,11 +33,11 @@ struct MorphingGlass: View {
             case .circle:
                 Image(systemName: "sparkles").font(.title2).transition(content)
             case .card:
-                Text("Chạm để mở menu").font(.headline).transition(content)
+                Text("Tap to open menu").font(.headline).transition(content)
             case .menu:
                 VStack(alignment: .leading, spacing: 10) {
-                    Label("Ảnh", systemImage: "photo")
-                    Label("Tệp", systemImage: "doc")
+                    Label("Photo", systemImage: "photo")
+                    Label("File", systemImage: "doc")
                 }
                 .font(.headline)
                 .transition(content)

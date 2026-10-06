@@ -1,9 +1,0 @@
-{
-  "name": "liquid-glass-slides-tools",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "jszip": "^3.10.1",
-    "pptxgenjs": "^4.0.1"
-  }
-}

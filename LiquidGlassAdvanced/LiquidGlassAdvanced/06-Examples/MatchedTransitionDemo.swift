@@ -72,11 +72,11 @@ private struct ZoomSheetDemo: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .navigationTitle(source == .compose ? "Bài viết mới" : "Bộ lọc")
+                .navigationTitle(source == .compose ? "New post" : "Filters")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button("Đóng", systemImage: "xmark") { dismiss() } }
-                    ToolbarItem(placement: .confirmationAction) { Button("Xong", systemImage: "checkmark") { dismiss() } }
+                    ToolbarItem(placement: .cancellationAction) { Button("Close", systemImage: "xmark") { dismiss() } }
+                    ToolbarItem(placement: .confirmationAction) { Button("Done", systemImage: "checkmark") { dismiss() } }
                 }
             }
             .presentationDetents([.medium])
@@ -118,10 +118,10 @@ private struct Place {
 }
 
 private let places = [
-    Place(title: "Biển", subtitle: "Nha Trang", symbol: "water.waves", colors: [Palette.teal, Palette.slate]),
-    Place(title: "Núi", subtitle: "Sa Pa", symbol: "mountain.2.fill", colors: [Palette.teal.opacity(0.85), Palette.navy]),
-    Place(title: "Hoàng hôn", subtitle: "Phú Quốc", symbol: "sun.horizon.fill", colors: [Palette.peach, Palette.rose]),
-    Place(title: "Thành phố", subtitle: "Hà Nội", symbol: "building.2.fill", colors: [Palette.violet, Palette.navy]),
+    Place(title: "Beach", subtitle: "Nha Trang", symbol: "water.waves", colors: [Palette.teal, Palette.slate]),
+    Place(title: "Mountains", subtitle: "Sa Pa", symbol: "mountain.2.fill", colors: [Palette.teal.opacity(0.85), Palette.navy]),
+    Place(title: "Sunset", subtitle: "Phu Quoc", symbol: "sun.horizon.fill", colors: [Palette.peach, Palette.rose]),
+    Place(title: "City", subtitle: "Hanoi", symbol: "building.2.fill", colors: [Palette.violet, Palette.navy]),
 ]
 
 /// Lưới thẻ. Chạm thẻ: push màn chi tiết lên NavigationStack của app, thẻ phóng to thành màn mới.
@@ -178,8 +178,8 @@ private struct PlaceDetail: View {
             }
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button("Thích", systemImage: liked ? "heart.fill" : "heart") { liked.toggle() }
-                    Button("Chia sẻ", systemImage: "square.and.arrow.up") {}
+                    Button("Like", systemImage: liked ? "heart.fill" : "heart") { liked.toggle() }
+                    Button("Share", systemImage: "square.and.arrow.up") {}
                 }
             }
             .sensoryFeedback(.selection, trigger: liked)

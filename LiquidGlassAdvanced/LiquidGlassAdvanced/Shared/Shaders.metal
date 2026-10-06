@@ -30,7 +30,7 @@ half4 chromatic(float2 position, SwiftUI::Layer layer, float amount) {
     return half4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
 }
 
-// MARK: - Level 4 · Ripple tại điểm chạm
+// MARK: - Ví dụ · Shader effects: ripple tại điểm chạm
 
 [[ stitchable ]]
 half4 ripple(float2 position, SwiftUI::Layer layer, float2 origin, float time,
@@ -46,7 +46,7 @@ half4 ripple(float2 position, SwiftUI::Layer layer, float2 origin, float time,
     return color;
 }
 
-// MARK: - Ví dụ · Biến dạng nền dưới glass
+// MARK: - Ví dụ · Shader effects: Lens, Jelly (biến dạng nền dưới glass)
 
 [[ stitchable ]]
 float2 fingerWarp(float2 position, float2 center, float radius, float strength, float time) {
@@ -54,4 +54,59 @@ float2 fingerWarp(float2 position, float2 center, float radius, float strength, 
     float k = exp(-dot(d, d) / (radius * radius));            // trọng số Gauss theo khoảng cách tới tâm
     float wobble = sin(length(d) * 0.045 - time * 2.5) * 12.0 * k * strength; // strength = 0: không méo gì
     return position - d * k * strength + wobble;               // lấy mẫu gần tâm hơn → phóng to vùng quanh tâm
+}
+
+// MARK: - Ví dụ · Shader effects: các hiệu ứng khác
+// Ý tưởng từ krispuckett/SwiftUIShaders (MIT), viết lại gọn cho demo.
+
+// Vortex (distortionEffect): xoắn nền quanh ngón tay. Mạnh nhất ở tâm, về 0 ở mép bán kính.
+[[ stitchable ]]
+float2 vortex(float2 position, float2 center, float radius, float twist) {
+    float2 d = position - center;
+    float k = saturate(1.0 - length(d) / radius);
+    float a = twist * k * k;
+    float s = sin(a), c = cos(a);
+    return center + float2(c * d.x - s * d.y, s * d.x + c * d.y);
+}
+
+// Pixelate (layerEffect): một vòng ô vuông lan ra từ điểm chạm rồi tan dần.
+[[ stitchable ]]
+half4 pixelBurst(float2 position, SwiftUI::Layer layer, float2 origin, float time, float maxSize) {
+    float d = distance(position, origin);
+    float ring = saturate(1.0 - abs(d - time * 500.0) / 180.0);                    // vòng lan 500 pt/s, dày 180 pt
+    float size = floor(maxSize * ring * (1.0 - saturate(time / 1.2)) / 4.0) * 4.0; // bậc 4 pt cho ô vuông rõ
+    if (size < 4.0) { return layer.sample(position); }
+    return layer.sample((floor(position / size) + 0.5) * size);                    // lấy màu ở tâm ô: |dời| ≤ maxSize / 2
+}
+
+static float glitchHash(float n) { return fract(sin(n) * 43758.5453); }
+
+// Glitch (layerEffect): các dải ngang bị xô lệch, tách kênh màu, tắt dần sau 0,6 s.
+[[ stitchable ]]
+half4 glitch(float2 position, SwiftUI::Layer layer, float time, float intensity) {
+    float strength = intensity * (1.0 - saturate(time / 0.6));
+    float row = floor(position.y / 18.0);
+    float seed = floor(time * 20.0);                                                // đổi dải bị lệch 20 lần mỗi giây
+    float shift = glitchHash(row * 13.1 + seed) > 0.7 ? (glitchHash(row + seed * 7.3) - 0.5) * 80.0 * strength : 0.0;
+    float2 p = position + float2(shift, 0.0);
+    float split = 8.0 * strength;
+    half4 r = layer.sample(p + float2(split, 0.0));
+    half4 g = layer.sample(p);
+    half4 b = layer.sample(p - float2(split, 0.0));
+    return half4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
+}
+
+// Thermal (colorEffect): vùng quanh ngón tay đổi sang bảng màu camera nhiệt.
+// Nhiệt = độ sáng của pixel cộng với nhiệt toả ra từ ngón tay: tâm nóng (trắng, vàng), xa dần lạnh (đỏ, tím, xanh).
+[[ stitchable ]]
+half4 thermal(float2 position, half4 color, float2 touch, float radius, float strength) {
+    float luma = dot(float3(color.rgb), float3(0.299, 0.587, 0.114)) / max(float(color.a), 0.001);
+    float d = distance(position, touch) / radius;
+    float heat = saturate(0.35 * luma + 0.9 * exp(-d * d * 2.5));
+    float3 palette = heat < 0.25 ? mix(float3(0.05, 0.0, 0.25), float3(0.35, 0.0, 0.6), heat / 0.25)
+                   : heat < 0.5  ? mix(float3(0.35, 0.0, 0.6), float3(0.9, 0.1, 0.2), (heat - 0.25) / 0.25)
+                   : heat < 0.75 ? mix(float3(0.9, 0.1, 0.2), float3(1.0, 0.75, 0.0), (heat - 0.5) / 0.25)
+                   :               mix(float3(1.0, 0.75, 0.0), float3(1.0, 1.0, 0.9), (heat - 0.75) / 0.25);
+    float mask = strength * (1.0 - smoothstep(0.7, 1.3, d));                         // mép vùng mờ dần, không cắt cứng
+    return half4(mix(color.rgb, half3(palette) * color.a, half(mask)), color.a);     // màu premultiplied
 }

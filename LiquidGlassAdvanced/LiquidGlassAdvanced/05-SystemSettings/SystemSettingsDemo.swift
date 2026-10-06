@@ -11,7 +11,6 @@ struct SystemSettingsDemo: View {
     var body: some View {
         ZStack {
             Backdrop(style: .vivid) // cần nhiều màu: thấy glass đục hơn khi Giảm độ trong suốt
-                .rippleOnTap() // RippleOnTap đọc accessibilityReduceMotion và tắt layerEffect
             VStack(spacing: 28) {
                 SettingsCard()
                 Image(systemName: open ? "xmark" : "plus")
@@ -28,7 +27,7 @@ struct SystemSettingsDemo: View {
         .safeAreaInset(edge: .top) { CodeHint(code: "@Environment(\\.accessibilityReduceTransparency)") }
         .safeAreaInset(edge: .bottom) {
             ControlPanel {
-                Picker("Giao diện", selection: $scheme) {
+                Picker("Appearance", selection: $scheme) {
                     Image(systemName: "moon.fill").tag(ColorScheme.dark)
                     Image(systemName: "sun.max.fill").tag(ColorScheme.light)
                 }
@@ -46,11 +45,11 @@ private struct SettingsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            row("Giảm độ trong suốt", path: "Trợ năng › Màn hình & cỡ chữ", on: reduceTransparency)
-            row("Tăng độ tương phản", path: "Trợ năng › Màn hình & cỡ chữ", on: contrast == .increased)
-            row("Giảm chuyển động", path: "Trợ năng › Chuyển động", on: reduceMotion)
+            row("Reduce Transparency", path: "Accessibility › Display & Text Size", on: reduceTransparency)
+            row("Increase Contrast", path: "Accessibility › Display & Text Size", on: contrast == .increased)
+            row("Reduce Motion", path: "Accessibility › Motion", on: reduceMotion)
             // iOS 26.1+: không có API để đọc lựa chọn này, nên không có dấu tích; đổi trong Cài đặt rồi xem lại glass.
-            row("Liquid Glass", path: "Màn hình & Độ sáng › Trong / Nhuộm màu", on: nil)
+            row("Liquid Glass", path: "Display & Brightness › Clear / Tinted", on: nil)
         }
         .padding(20)
         .adaptiveGlass(in: .rect(cornerRadius: 28))
@@ -61,7 +60,7 @@ private struct SettingsCard: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.callout)
-                Text("Cài đặt › \(path)").font(.caption).foregroundStyle(.secondary)
+                Text("Settings › \(path)").font(.caption).foregroundStyle(.secondary)
             }
             Spacer(minLength: 8)
             Image(systemName: on == true ? "checkmark.circle.fill" : on == false ? "circle" : "minus.circle")

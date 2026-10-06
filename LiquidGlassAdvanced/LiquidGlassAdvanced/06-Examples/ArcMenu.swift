@@ -43,8 +43,8 @@ struct ArcMenuDemo: View {
 }
 
 private extension PaneLabel {
-    static let fan = PaneLabel(text: "Quạt", color: Palette.accent)
-    static let burst = PaneLabel(text: "Toả thẳng", color: Palette.warm)
+    static let fan = PaneLabel(text: "Fan", color: Palette.accent)
+    static let burst = PaneLabel(text: "Burst", color: Palette.warm)
 }
 
 private struct ArcMenu: View {
@@ -77,12 +77,6 @@ private struct ArcMenu: View {
                 .onTapGesture(perform: toggle)
         }
         .sensoryFeedback(.selection, trigger: open)
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1.4))
-                toggle()
-            }
-        }
     }
 
     private var items: some View {

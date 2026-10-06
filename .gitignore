@@ -19,11 +19,3 @@ build/
 # Swift Package Manager
 .build/
 .swiftpm/
-
-# Node (slides/tools): cài lại bằng `npm install`
-node_modules/
-npm-debug.log*
-
-# Office: file khoá khi đang mở pptx bằng PowerPoint / Keynote
-~$*
-*.pptx#
